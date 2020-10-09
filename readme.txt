@@ -1,2 +1,1 @@
-maxcompute project !!!
-comtain udf ,mapreduce,etc...
+maxcompute数据计算项目，包括sql脚本，udf自定义函数，mapreduce脚本

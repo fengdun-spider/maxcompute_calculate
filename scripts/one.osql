@@ -1,0 +1,314 @@
+--name:listing_unique
+--author:apple
+--create time:2020-09-17 18:15
+@previous_start := '2020-09-13';
+@previous_end := '2020-09-21';
+@start := '2020-09-20';
+@end := '2020-09-28';
+@unique_senven_day :=
+  select *
+  from (
+    select product_node, asin, reviews_count, stars, soldby, issue_date, brand, ship, price, item_weight,
+           product_dimensions, bsr1,
+           count(product_node)over (partition by product_node order by cast(bsr1 as bigint)) as rank
+    from listingitem
+    where pt > @start and pt < @end and bsr1 != '' and product_node != '')
+  where rank <= 100;
+
+@previous_unique_senven_day :=
+  select *
+  from (
+    select asin, reviews_count, stars, soldby, issue_date, brand, ship, price, item_weight, product_dimensions, bsr1,
+           count(asin)over (partition by asin order by asin) as asin_count
+    from listingitem
+    where pt > @previous_start and pt < @previous_end and bsr1 != '' and product_node != '')
+  where asin_count = 1;
+
+
+
+--市场需求指标start----
+
+--月均销量 avg_sales_counts
+--月均销售额 avg_sales
+--平均评论数 avg_reviews
+--平均重量 avg_weight
+--平均星级 avg_stars
+--平均BSR avg_bsr
+--平均价格 avg_price
+--cast(split_part(price, '-', 1) as double)
+@market_demand_top100 :=
+  select                                                                            a.product_node, sum(cast(
+  a.reviews_count as bigint) - cast(b.reviews_count as bigint)) /
+  count(a.reviews_count) as avg_reviews,                                            sum((cast
+  (a.reviews_count as bigint) - cast(b.reviews_count as bigint)) * 100) /
+  count(a.reviews_count) as avg_sales_counts
+  ,                                                                                 if(sum((cast
+  (a.reviews_count as bigint) * cast(split_part(a.price, '-', 1) as double) - cast(b.reviews_count as bigint) * cast(
+  split_part(b.price, '-', 1) as double)) * 100) > 0, sum((cast
+  (a.reviews_count as bigint) * cast(split_part(a.price, '-', 1) as double) - cast(b.reviews_count as bigint) * cast(
+  split_part(b.price, '-', 1) as double)) * 100) / count(a.price), 0) as avg_sales, avg(cast(
+  a.bsr1 as bigint)) as avg_bsr,                                                    avg(cast(
+  split_part(a.price, '-', 1) as double)) as avg_price,                             avg(cast(
+  a.stars as double)) as avg_stars,                                                 avg(cast(
+  replace(a.item_weight, ' ounces', '') as double)) / count(a.item_weight) as avg_weight
+  from @unique_senven_day a
+    left join @previous_unique_senven_day b on a.asin = b.asin
+  where split_part(a.price, '-', 1) != '' and split_part(b.price, '-', 1) != '' and a.reviews_count != ''
+  and b.reviews_count != '' and a.item_weight != ''
+  group by a.product_node;
+
+--平均体积 avg_product_dimensions
+@avg_product_dimensions :=
+  select product_node,
+         concat(round(avg_l, 1), 'x', round(avg_w, 1), 'x', round(avg_h, 1), 'inches') as avg_product_dimensions
+  from (
+    select product_node, avg(l) as avg_l, avg(w) as avg_w, avg(h) as avg_h
+    from (
+      select product_node, split_part(replace(product_dimensions, 'inches', ''), 'x', 1) as l,
+             split_part(replace(product_dimensions, 'inches', ''), 'x', 2) as w,
+             split_part(replace(product_dimensions, 'inches', ''), 'x', 3) as h
+      from @unique_senven_day
+      where product_dimensions != '')
+    group by product_node);
+--头部Listing平均BSR avg_top_bsr
+--头部Listing月均销量 top_avg_sales_counts
+--头部Listing月均销售额 top_avg_sales
+@market_demand_top10 :=
+  select a.product_node, avg(cast(a.bsr1 as bigint)) as avg_top_bsr,
+  sum((cast(a.reviews_count as bigint) - cast(b.reviews_count as bigint)) * 100) / count(a.
+  reviews_count) as top_avg_sales_counts, if(sum((cast
+  (a.reviews_count as bigint) * cast(split_part(a.price, '-', 1) as double) - cast(b.reviews_count as bigint) * cast(
+  split_part(b.price, '-', 1) as double)) * 100) > 0, sum((cast
+  (a.reviews_count as bigint) * cast(split_part(a.price, '-', 1) as double) - cast(b.reviews_count as bigint) * cast(
+  split_part(b.price, '-', 1) as double)) * 100) / count(a.price), 0) as top_avg_sales
+  from @unique_senven_day a
+    left join @previous_unique_senven_day b on a.asin = b.asin
+  where a.rank <= 10 and split_part(a.price, '-', 1) != '' and split_part(b.price, '-', 1) != ''
+  and a.reviews_count != '' and b.reviews_count != '' and a.item_weight != ''
+  group by a.product_node;
+
+
+@market_demand :=
+  select a.product_node as product_node, a.avg_weight as avg_weight, a.avg_stars as avg_stars,
+         a.avg_sales_counts as avg_sales_counts, a.avg_sales as avg_sales, a.avg_reviews as avg_reviews,
+         a.avg_bsr as avg_bsr, a.avg_price as avg_price, b.avg_product_dimensions as avg_product_dimensions,
+         c.top_avg_sales_counts as top_avg_sales_counts, c.top_avg_sales as top_avg_sales, c.avg_top_bsr as avg_top_bsr
+  from @market_demand_top100 a
+    full outer join @avg_product_dimensions b on a.product_node = b.product_node
+    full outer join @market_demand_top10 c on a.product_node = c.product_node;
+--市场需求指标end----
+
+--市场竞争指标start---
+
+--品牌数量
+@brand_count_50 :=
+  select product_node, count(distinct brand) as brand_count_50
+  from @unique_senven_day
+  where rank <= 50
+  group by product_node;
+@brand_count_100 :=
+  select product_node, count(distinct brand) as brand_count_100
+  from @unique_senven_day
+  where rank <= 100
+  group by product_node;
+
+-- 总销量
+@total_sales :=
+  select product_node, sum(cast(reviews_count as bigint)) * 100 as total_sales
+  from @unique_senven_day
+  group by product_node;
+--商品集中度，评论*系数
+@top_commodity_concentration :=
+  select product_node, sum(cast(reviews_count as bigint)) * 100 as top_commodity_concentration_sales
+  from (
+    select product_node, reviews_count,
+           count(reviews_count)over (partition by product_node order by cast(reviews_count as bigint
+           ) desc) as reviews_rank
+    from @unique_senven_day
+    where reviews_count != '')
+  where reviews_rank <= 10
+  group by product_node;
+
+@commodity_concentration :=
+  select a.product_node, top_commodity_concentration_sales / total_sales as commodity_concentration
+  from @top_commodity_concentration a
+    left join @total_sales b on a.product_node = b.product_node;
+--品牌集中度
+@top_brand :=
+  select product_node, brand, brand_reviews_sum,
+         count(brand_reviews_sum)over (partition by brand_reviews_sum  order by brand_reviews_sum
+         desc) as brand_reviews_rank
+  from (
+    select product_node, brand, sum(cast(reviews_count as bigint)) as brand_reviews_sum
+    from (
+      select product_node, brand, reviews_count,
+             count(reviews_count)over (partition by product_node order by cast(reviews_count as bigint
+             ) desc) as reviews_rank
+      from @unique_senven_day
+      where reviews_count != '')
+    group by brand, product_node
+  );
+@top_brand_sales :=
+  select product_node, sum(brand_reviews_sum) as top_brand_sales
+  from @top_brand
+  where brand_reviews_rank <= 10
+  group by product_node;
+
+@brand_concentration :=
+  select a.product_node, b.top_brand_sales / a.total_sales as brand_concentration
+  from @total_sales a
+    left join @top_brand_sales b on a.product_node = b.product_node;
+
+--平均卖家数
+@avg_seller :=
+  select product_node, avg(asin_count) as avg_seller
+  from (
+    select product_node, count(asin) as asin_count
+    from @unique_senven_day
+    group by asin, product_node)
+  group by product_node;
+--FBA占比
+--@FBA_ratio :=
+--  select product_node, count(ship) / 100 as FBA_ratio
+--  from @unique_senven_day
+--  where ship = 'FBA'
+--  group by product_node;
+--FBM占比
+--@FBM_ratio :=
+--  select product_node, count(ship) / 100 as FBM_ratio
+--  from @unique_senven_day
+--  where ship = 'FBM'
+--  group by product_node;
+--AMZ占比
+--@AMZ_ratio :=
+--  select product_node, count(ship) / 100 as AMZ_ratio
+--  from @unique_senven_day
+--  where ship = 'AMZ'
+--  group by product_node;
+--物流方式占比
+@shi_ratio :=
+  select product_node, sum(if(ship = 'FBA', ship_count, 0)) / sum(ship_count) as FBA_ratio,
+         sum(if(ship = 'FBM', ship_count, 0)) / sum(ship_count) as FBM_ratio,
+         sum(if(ship = 'AMZ', ship_count, 0)) / sum(ship_count) as AMZ_ratio
+  from (
+    select product_node, ship, count(ship) as ship_count
+    from @unique_senven_day
+    group by ship, product_node)
+  group by product_node;
+
+@market_competition :=
+  select a.product_node as product_node, a.brand_count_50 as brand_count_50, b.brand_count_100 as brand_count_100,
+         c.commodity_concentration as commodity_concentration, d.brand_concentration as brand_concentration,
+         e.avg_seller as avg_seller, f.AMZ_ratio as AMZ_ratio, f.FBM_ratio as FBM_ratio, f.FBA_ratio as FBA_ratio
+  from @brand_count_50 a
+    full outer join @brand_count_100 b on a.product_node = b.product_node
+    full outer join @commodity_concentration c on a.product_node = c.product_node
+    full outer join @brand_concentration d on a.product_node = d.product_node
+    full outer join @avg_seller e on a.product_node = e.product_node
+    full outer join @shi_ratio f on a.product_node = f.product_node;
+--市场竞争指标end---
+
+
+
+--市场波动指标start--
+
+@new_product :=
+  select *
+  from @unique_senven_day
+  where datediff(to_date(issue_date, 'yyyy-mm-dd'), getdate(), 'dd') > 90;
+
+
+--新品数量占比
+--@new_product_ratio :=
+--  select product_node, count(rank) / 100 as new_product_ratio
+--  from @new_product
+--  group by product_node;
+
+--新品平均评论数
+--@new_product_avg_reviews :=
+--  select product_node, avg(cast(reviews_count as bigint)) as new_product_avg_reviews
+--  from @new_product
+--  group by product_node;
+
+--新品平均价格
+--@new_product_avg_price :=
+--  select product_node, avg(cast(split_part(price, '-', 1) as double)) as new_product_avg_price
+--  from @new_product
+--  group by product_node;
+
+--新品平均星级
+--@new_product_avg_stars :=
+--  select product_node, avg(cast(stars as double)) as new_product_avg_stars
+--  from @new_product
+--  group by product_node;
+@new_product_target :=
+  select product_node, count(rank) / 100 as new_product_ratio,
+         avg(cast(reviews_count as bigint)) as new_product_avg_reviews,
+         avg(cast(split_part(price, '-', 1) as double)) as new_product_avg_price,
+         avg(cast(stars as double)) as new_product_avg_stars
+  from @new_product
+  group by product_node;
+
+----新品月均销售量 new_product_avg_sales_counts
+--新品月均销售额 new_product_avg_sales
+@market_demand_new_product :=
+  select a.product_node, sum((cast(a.reviews_count as bigint) - cast(b.reviews_count as bigint)) * 100) / count(a.
+  reviews_count) as new_product_avg_sales_counts,
+  sum((cast(a.reviews_count as bigint) * cast(split_part(a.price, '-', 1) as double) - cast(b.reviews_count as bigint) *
+  cast(split_part(b.price, '-', 1) as double)) * 100) / count(a.price) as new_product_avg_sales
+  from @new_product a
+    left join @previous_unique_senven_day b on a.asin = b.asin
+  where split_part(a.price, '-', 1) != '' and split_part(b.price, '-', 1) != '' and a.reviews_count != ''
+  and b.reviews_count != '' and a.item_weight != ''
+  group by a.product_node;
+
+@market_fluctuations :=
+  select a.product_node as product_node, a.new_product_avg_stars as new_product_avg_stars,
+         a.new_product_avg_price as new_product_avg_price, a.new_product_avg_reviews as new_product_avg_reviews,
+         a.new_product_ratio as new_product_ratio, b.new_product_avg_sales_counts as new_product_avg_sales_counts,
+         b.new_product_avg_sales as new_product_avg_sales
+  from @new_product_target a
+    full outer join @market_demand_new_product b on a.product_node = b.product_node;
+--市场波动指标end--
+--
+--
+--select a.product_node as product_node, a.avg_bsr as avg_bsr, a.avg_price as avg_price, a.avg_reviews as avg_reviews,
+--       a.avg_sales as avg_sales, a.avg_sales_counts as avg_sales_counts, a.avg_stars as avg_stars,
+--       a.avg_weight as avg_weight, b.avg_product_dimensions as avg_product_dimensions, c.avg_top_bsr as avg_top_bsr,
+--       c.top_avg_sales as top_avg_sales, c.top_avg_sales_counts as top_avg_sales_counts,
+--       d.brand_count_50 as brand_count_50, e.brand_count_100 as brand_count_100,
+--       f.commodity_concentration as commodity_concentration, g.brand_concentration as brand_concentration,
+--       h.avg_seller as avg_seller, i.FBA_ratio as FBA_ratio, j.FBM_ratio as FBM_ratio, k.AMZ_ratio as AMZ_ratio,
+--       l.new_product_ratio as new_product_ratio, m.new_product_avg_reviews as new_product_avg_reviews,
+--       n.new_product_avg_price as new_product_avg_price, o.new_product_avg_stars as new_product_avg_stars,
+--       p.new_product_avg_sales as new_product_avg_sales, p.new_product_avg_sales_counts as new_product_avg_sales_counts
+--from @market_demand_top100 a
+--  full outer join @avg_product_dimensions b on a.product_node = b.product_node
+--  full outer join @market_demand_top10 c on a.product_node = c.product_node
+--  full outer join @brand_count_50 d on a.product_node = d.product_node
+--  full outer join @brand_count_100 e on a.product_node = e.product_node
+--  full outer join @commodity_concentration f on a.product_node = f.product_node
+--  full outer join @brand_concentration g on a.product_node = g.product_node
+--  full outer join @avg_seller h on a.product_node = h.product_node
+--  full outer join @FBA_ratio i on a.product_node = i.product_node
+--  full outer join @FBM_ratio j on a.product_node = j.product_node
+--  full outer join @AMZ_ratio k on a.product_node = k.product_node
+--  full outer join @new_product_ratio l on a.product_node = l.product_node
+--  full outer join @new_product_avg_reviews m on a.product_node = m.product_node
+--  full outer join @new_product_avg_price n on a.product_node = n.product_node
+--  full outer join @new_product_avg_stars o on a.product_node = o.product_node
+--  full outer join @market_demand_new_product p on a.product_node = p.product_node;
+
+select a.product_node as product_node, a.avg_sales_counts as avg_sales_counts, a.avg_sales as avg_sales,
+       a.avg_reviews as avg_reviews, a.avg_bsr as avg_bsr, a.avg_price as avg_price, a.avg_stars as avg_stars,
+       a.avg_weight as avg_weight, a.avg_product_dimensions as avg_product_dimensions, a.avg_top_bsr as avg_top_bsr,
+       a.top_avg_sales_counts as top_avg_sales_counts, a.top_avg_sales as top_avg_sales,
+       b.brand_count_50 as brand_count_50, b.brand_count_100 as brand_count_100,
+       b.commodity_concentration as commodity_concentration, b.brand_concentration as brand_concentration,
+       b.avg_seller as avg_seller, b.FBA_ratio as FBA_ratio, b.FBM_ratio as FBM_ratio, b.AMZ_ratio as AMZ_ratio,
+       c.new_product_ratio as new_product_ratio, c.new_product_avg_reviews as new_product_avg_reviews,
+       c.new_product_avg_price as new_product_avg_price, c.new_product_avg_stars as new_product_avg_stars,
+       c.new_product_avg_sales_counts as new_product_avg_sales_counts, c.new_product_avg_sales as new_product_avg_sales
+from @market_demand a
+  full outer join @market_competition b on a.product_node = b.product_node
+  full outer join @market_fluctuations c on a.product_node = c.product_node;
