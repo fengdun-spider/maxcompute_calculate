@@ -1,0 +1,8 @@
+--name:local1
+--author:apple
+--create time:2020-09-06 22:34
+CREATE TABLE wc_in3(col string);
+
+insert overwrite table wc_in3 values ('hello');
+
+select * from wc_in3;
