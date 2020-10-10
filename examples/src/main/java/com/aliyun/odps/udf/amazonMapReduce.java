@@ -187,7 +187,7 @@ public class amazonMapReduce {
     }
     public static void main(String[] args) throws Exception {
         if (args.length != 1 && valid_monday_pt(args[0])) {
-            System.err.println("please spec pt like 2020-09-28,ensure is a past monday date !!!");
+            System.err.println("please spec pt like pt=2020-09-28,ensure is a past monday date !!!");
             System.exit(2);
         }
         String pt = args[0];
@@ -203,7 +203,7 @@ public class amazonMapReduce {
         job.setOutputGroupingColumns(new String[] { "product_node" });
         //设置输入和输出的表信息。
         InputUtils.addTable(TableInfo.builder().tableName("listingitem_result").partSpec(pt).build(), job);
-        OutputUtils.addTable(TableInfo.builder().tableName("listingitem_mapreduce").partSpec("pt=2020-09-14").build(), job);
+        OutputUtils.addTable(TableInfo.builder().tableName("listingitem_mapreduce").partSpec(pt).build(), job);
         JobClient.runJob(job);
     }
 }
