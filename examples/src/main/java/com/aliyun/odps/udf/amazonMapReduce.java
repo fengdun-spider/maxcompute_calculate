@@ -181,7 +181,7 @@ public class amazonMapReduce {
             result_json.put("ana_reviews_cnt_range_month_sold_cnt_rate",map_2_string(reviews_cnt_range_month_sold_cnt_map,ana_month_sold_cnt_sum));
             result.set(0,key.get("product_node"));
             result.set(1,result_json.toJSONString());
-            System.out.println(result_json.toJSONString());
+//            System.out.println(result_json.toJSONString());
             context.write(result);
         }
     }
@@ -203,7 +203,7 @@ public class amazonMapReduce {
         job.setOutputGroupingColumns(new String[] { "product_node" });
         //设置输入和输出的表信息。
         InputUtils.addTable(TableInfo.builder().tableName("listingitem_result").partSpec(pt).build(), job);
-        OutputUtils.addTable(TableInfo.builder().tableName("listingitem_mapreduce").partSpec(pt).build(), job);
+        OutputUtils.addTable(TableInfo.builder().tableName("listingitem_mapreduce").partSpec("pt=2020-09-14").build(), job);
         JobClient.runJob(job);
     }
 }
