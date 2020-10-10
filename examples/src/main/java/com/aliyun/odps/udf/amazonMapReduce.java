@@ -136,7 +136,6 @@ public class amazonMapReduce {
                 map_key_add_value(brand_asin_cnt_map,brand,1);
                 map_key_add_value(stars_range_asin_cnt_map,stars_range,1);
                 map_key_add_value(reviews_cnt_range_asin_cnt_map,reviews_count_range,1);
-
             }
             JSONObject result_json = new JSONObject();
             // 类目下所有asin个数
