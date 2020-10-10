@@ -13,8 +13,9 @@
   where rank <= 100;
 
 
---@market_result :=
-select product_node, amazonudf(data) as result1 from (
+--每个类目前100排名商品的分析
+@market_result_top_100 :=
+select product_node, amazonudf(data) as result from (
   select product_node, collect_list(NAMED_STRUCT(
   'rank', if(rank is null,-1,rank),
   'week_sold_cnt', if(week_sold_cnt is null,-1,week_sold_cnt),
@@ -42,3 +43,12 @@ select product_node, amazonudf(data) as result1 from (
   from @now_week_unique_top_100
   group by product_node
 );
+
+
+--连接上mapreduce表的结果，得到类目计算的最终结果
+insert into table listingitem_market_result partition(pt = @start)
+select
+a.product_node as product_node,
+b.result as market1,
+a.value as market2
+from (select product_node,value from listingitem_mapreduce where pt=@start) a join  @market_result_top_100 b on a.product_node=b.product_node;
