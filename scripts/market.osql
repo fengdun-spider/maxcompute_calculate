@@ -13,32 +13,32 @@
   where rank <= 100;
 
 
-@market_result :=
-select product_node, amazonudf(data) from (
-select product_node, collect_list(NAMED_STRUCT(
-'rank', if(rank is null,-1,rank),
-'week_sold_cnt', if(week_sold_cnt is null,-1,week_sold_cnt),
-'week_sold_money',if(week_sold_money is null,-1,week_sold_money),
-'month_sold_cnt', if(month_sold_cnt is null,-1,month_sold_cnt),
-'month_sold_money',if(month_sold_money is null,-1,month_sold_money),
-'product_dimensions',if(product_dimensions is null,-1,product_dimensions),
-'bsr1',if(bsr1 is null,-1,bsr1),
-'price', if(price is null,-1,price),
-'reviews_count', if(reviews_count is null,-1,reviews_count),
-'stars', if(stars is null,-1,stars),
-'offer_listing', if(offer_listing is null,-1,offer_listing),
-'ship', if(ship is null,'',ship),
-'asin', if(asin is null,'',asin),
-'brand', if(brand is null,'',brand),
-'soldby', if(soldby is null,'',soldby),
-'shipping_weight',if(shipping_weight is null,'',shipping_weight),
-'ask_count', if(ask_count is null,-1,ask_count),
-'item_weight', if(item_weight is null,-1,item_weight),
-'node_id', if(node_id is null,'',node_id),
-'product_node', if(product_node is null,'',product_node),
-'bsr1path',if(bsr1path is null,'',bsr1path),
-'issue_date',if(issue_date is null,'',issue_date)
-)) as data
-from @now_week_unique_top_100
-group by product_node
+--@market_result :=
+select product_node, amazonudf(data) as result1 from (
+  select product_node, collect_list(NAMED_STRUCT(
+  'rank', if(rank is null,-1,rank),
+  'week_sold_cnt', if(week_sold_cnt is null,-1,week_sold_cnt),
+  'week_sold_money',if(week_sold_money is null,-1,week_sold_money),
+  'month_sold_cnt', if(month_sold_cnt is null,-1,month_sold_cnt),
+  'month_sold_money',if(month_sold_money is null,-1,month_sold_money),
+  'product_dimensions',if(product_dimensions is null,-1,product_dimensions),
+  'bsr1',if(bsr1 is null,-1,bsr1),
+  'price', if(price is null,-1,price),
+  'reviews_count', if(reviews_count is null,-1,reviews_count),
+  'stars', if(stars is null,-1,stars),
+  'offer_listing', if(offer_listing is null,-1,offer_listing),
+  'ship', if(ship is null,'',ship),
+  'asin', if(asin is null,'',asin),
+  'brand', if(brand is null,'',brand),
+  'soldby', if(soldby is null,'',soldby),
+  'shipping_weight',if(shipping_weight is null,'',shipping_weight),
+  'ask_count', if(ask_count is null,-1,ask_count),
+  'item_weight', if(item_weight is null,-1,item_weight),
+  'node_id', if(node_id is null,'',node_id),
+  'product_node', if(product_node is null,'',product_node),
+  'bsr1path',if(bsr1path is null,'',bsr1path),
+  'issue_date',if(issue_date is null,'',issue_date)
+  )) as data
+  from @now_week_unique_top_100
+  group by product_node
 );

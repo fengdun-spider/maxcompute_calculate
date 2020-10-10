@@ -1,89 +1,48 @@
 package com.aliyun.odps.utils;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
 
 public class tools {
 
     static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
     static Date now_date = new Date();
 
-    //  long 数值型 cast null 为-1
-    public static long cast_null_negative_long(Object source){
-        if(source==null){
-            return -1;
-        }else {
-            return (long) source;
+    //    求价格均值
+    public static double list_double_avg(ArrayList<Double> price_list){
+        double price_sum = 0;
+        for (Double price : price_list){
+            price_sum += price;
         }
-    }
-
-    //  double 数值型 cast null 为-1
-    public static double cast_null_negative_double(Object source){
-        if(source==null){
-            return -1;
-        }else {
-            return (double) source;
-        }
-    }
-
-    //    重量转换函数
-    public static double get_pound_weight(String item_weight){
-        String pattern = "([\\d|\\\\.]+)\\s(\\w+)";
-        Pattern r = Pattern.compile(pattern);
-        Matcher m = r.matcher(item_weight);
-        // 美制单位
-        if (m.find() && m.group(1)!=null && m.group(2)!=null ){
-            switch (m.group(2)) {
-                case "pounds":
-                    return Double.parseDouble(m.group(1));
-                case "ounces":
-                    return Double.parseDouble(m.group(1)) / 16;
-                case "drachms":
-                    return Double.parseDouble(m.group(1)) / 256;
-                case "stones":
-                    return Double.parseDouble(m.group(1)) * 14;
-                case "hundredweights":
-                    return Double.parseDouble(m.group(1)) * 100;
-                case "tons":
-                    return Double.parseDouble(m.group(1)) * 2000;
-            }
-        }
-        return -1;
-    }
-
-    //    体积转换函数
-    public static double get_inch_dimensions(String dimensions){
-        String pattern = "([\\d|\\\\.]+)\\s*x\\s*([\\d|\\\\.]+)\\s*x\\s*([\\d|\\\\.]+)\\s*(\\w+)";
-        Pattern r = Pattern.compile(pattern);
-        Matcher m = r.matcher(dimensions);
-        // 美制单位
-        if (m.find() && m.group(4)!=null && m.group(3)!=null ){
-            if (m.group(4).equals("inches")){
-                return Double.parseDouble(m.group(1))*Double.parseDouble(m.group(2))*Double.parseDouble(m.group(3));
-            }else if(m.group(4).equals("feet")){
-                return Double.parseDouble(m.group(1))*Double.parseDouble(m.group(2))*Double.parseDouble(m.group(3)) *1728;
-            }
-        }
-        return -1;
-    }
-
-    //    品牌字符串处理函数
-    public static String handle_brand_string(String brand){
-        return brand.replace("Visit the ","").replace(" Store","").replace("Brand: ","");
+        return price_sum/price_list.size();
     }
 
     //    判断日期是不是多少天内
-    public static boolean date_is_new(String issue_date,int days) throws ParseException {
-        Date pub_date = sdf.parse(issue_date);
-        double pub_days = (now_date.getTime()-pub_date.getTime())/(1000.0*3600*24);
-        return pub_days <= days;
+    public static boolean date_is_new(String issue_date,int days){
+        try{
+            Date pub_date = sdf.parse(issue_date);
+            double pub_days = (now_date.getTime()-pub_date.getTime())/(1000.0*3600*24);
+            return pub_days <= days;
+        } catch (Exception ex){
+            return false;
+        }
     }
 
-    //    更新map中key，value
+    //   pt日期格式是否正确
+    public static boolean valid_monday_pt(String pt){
+        try{
+            Date pt_date = sdf.parse(pt);
+            Calendar c = Calendar.getInstance();
+            c.setTime(pt_date);
+            return pt_date.compareTo(now_date) < 0 && c.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY;
+        }catch (Exception ex){
+            return false;
+        }
+    }
+
+    //    累加value更新map中key-value
     public static void map_key_add_value(Map<String,Long> map,String key,long value){
         if(map.containsKey(key)){
             map.replace(key,map.get(key)+value);
@@ -91,13 +50,6 @@ public class tools {
             map.put(key,value);
         }
     }
-//    public static <K extends Comparable, V extends Comparable> Map<K, V> sortMapByValues(Map<K, V> aMap) {
-//        HashMap<K, V> finalOut = new LinkedHashMap<>();
-//        aMap.entrySet()
-//                .stream()
-//                .sorted((p1, p2) -> p2.getValue().compareTo(p1.getValue()))
-//                .collect(Collectors.toList()).forEach(ele -> finalOut.put(ele.getKey(), ele.getValue()));
-//        return finalOut;
 
     //    map按照value排序
     public static List<Map.Entry<String, Long>> sorted_entry_by_value(Map<String, Long> aMap) {
@@ -110,7 +62,6 @@ public class tools {
 
     //    map按照value排序 ,并取指定数量键值对字符串
     public static String sortMapByValues_string(Map<String, Long> map,int size) {
-        System.out.println(map);
         if(map.size()==0){return "";}
         StringBuilder result = new StringBuilder();
         List<Map.Entry<String, Long>> sort_entry_list = sorted_entry_by_value(map);
@@ -124,9 +75,9 @@ public class tools {
         return result.substring(0, result.length() - 3);
     }
 
-    //    map按照value排序 ,并取指定数量键值对字符串
+    //  map按照value排序 ,并取指定数量键值对字符串,,,,
     public static String sortMapByValues_string(Map<String, Long> map,int size,long month_sold_cnt) {
-        if(map.size()==0 || month_sold_cnt==0){return "";}
+        if(map.size()==0 || month_sold_cnt<=0){return "";}
         double month_sold_cnt_double = (double)  month_sold_cnt;
         StringBuilder result = new StringBuilder();
         List<Map.Entry<String, Long>> sort_entry_list = sorted_entry_by_value(map);
@@ -151,39 +102,48 @@ public class tools {
         return result.substring(0, result.length() - 3);
     }
 
-    // 价格分布
-    public static String get_price_range(double price) {
-        if (0<=price && price<40) {
-            return "0-40";
-        }else if (40<=price && price<80) {
-            return "40-80";
-        } else if (80<=price && price<120) {
-            return "80-120";
-        }else if (120<=price && price<160) {
-            return "120-160";
-        }else if (160<=price && price<200) {
-            return "160-200";
-        }else if (200<=price && price<240) {
-            return "200-240";
-        }else if (240<=price && price<280) {
-            return "240-280";
-        }else if (280<=price && price<320) {
-            return "280-320";
-        }else if (320<=price && price<360) {
-            return "320-360";
-        }else if(360<=price){
-            return "360up";
-        }else{
-            return "null";
+    //  map变成string返回,,,,
+    public static String map_2_string(Map<String, Long> map,long month_sold_cnt) {
+        if(map.size()==0 ||month_sold_cnt<=0){return "";}
+        double month_sold_cnt_double = (double)  month_sold_cnt;
+        StringBuilder result = new StringBuilder();
+        for (Map.Entry<String, Long> entry : map.entrySet()){
+            result.append(entry.getKey()).append(":").append(entry.getValue()/month_sold_cnt_double).append("|||");
         }
+        return result.substring(0, result.length() - 3);
+    }
+
+    // 价格分布
+    public static String get_price_range(Double price,Double avg_price) {
+        double unit = avg_price/5;
+        double start = avg_price - unit*4;
+        double end = 0;
+        if (price<start){
+            return "0-"+String.format("%.1f", start);
+        }
+        for(int i=0;i<=10;i++){
+            end = start+unit;
+            if (start<=price && price<end){
+                return String.format("%.1f", start)+"-"+String.format("%.1f", end);
+            }
+            start = end;
+        }
+        if(price>=end){
+            return String.format("%.1f", end)+"-"+"up";
+        }
+        return "";
     }
 
     // 星级分布
-    public static String get_stars_range(double stars) {
-        if(0<stars && stars<2){
+    public static String get_stars_range(Double stars) {
+        if (stars == null){
+            return "null";
+        }else if(0<stars && stars<2){
             return "0-2";
-        }else if(2<=stars && stars<3){
-            return "2-3";
+        }else if(2<=stars && stars<2.5){
+            return "2-2.5";
+        }else if(2.5<=stars && stars<3){
+            return "2.5-3";
         }else if(3<=stars && stars<3.5){
             return "3-3.5";
         }else if(3.5<=stars && stars<4){
@@ -196,10 +156,11 @@ public class tools {
             return "null";
         }
     }
-
     // 评分数分布
-    public static String get_reviews_count_range(long reviews_count) {
-        if(1<=reviews_count && reviews_count<100){
+    public static String get_reviews_count_range(Long reviews_count) {
+        if(reviews_count==null){
+            return "null";
+        }else if(1<=reviews_count && reviews_count<100){
             return "1-100";
         }else if(100<=reviews_count && reviews_count<200){
             return "100-200";
@@ -216,3 +177,13 @@ public class tools {
         }
     }
 }
+
+
+
+//    public static <K extends Comparable, V extends Comparable> Map<K, V> sortMapByValues(Map<K, V> aMap) {
+//        HashMap<K, V> finalOut = new LinkedHashMap<>();
+//        aMap.entrySet()
+//                .stream()
+//                .sorted((p1, p2) -> p2.getValue().compareTo(p1.getValue()))
+//                .collect(Collectors.toList()).forEach(ele -> finalOut.put(ele.getKey(), ele.getValue()));
+//        return finalOut;

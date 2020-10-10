@@ -1,1 +1,1 @@
-jar -resources examples-1.0-SNAPSHOT.jar,fastjson-1.2.47.jar -classpath /Users/apple/IdeaProjects/first/examples/target/examples-1.0-SNAPSHOT.jar com.aliyun.odps.udf.amazonMapReduce pt=2020-09-27;
+jar -resources examples-1.0-SNAPSHOT.jar,fastjson-1.2.47.jar -classpath /Users/apple/IdeaProjects/first/examples/target/examples-1.0-SNAPSHOT.jar com.aliyun.odps.udf.amazonMapReduce pt=2020-09-28;

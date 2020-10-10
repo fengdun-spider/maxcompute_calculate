@@ -5,10 +5,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.aliyun.odps.data.Struct;
 import com.aliyun.odps.udf.annotation.Resolve;
 
-import java.text.ParseException;
 import java.util.*;
 
-import static com.aliyun.odps.utils.tools.*;
+import static com.aliyun.odps.utils.tools.date_is_new;
+import static com.aliyun.odps.utils.tools.map_key_add_value;
 
 
 @Resolve("ARRAY<STRUCT<rank:BIGINT,week_sold_cnt:BIGINT,week_sold_money:DOUBLE,month_sold_cnt:BIGINT," +
@@ -18,7 +18,7 @@ import static com.aliyun.odps.utils.tools.*;
         "item_weight:DOUBLE,node_id:STRING,product_node:STRING,bsr1path:STRING,issue_date:STRING>>->string")
 public class amazonUdf extends UDF {
 
-    public String evaluate(List<Struct> all_item) throws ParseException {
+    public String evaluate(List<Struct> all_item) {
 //        样本个数
         double all_item_cnt = all_item.size();
 //        月总销量
@@ -67,23 +67,23 @@ public class amazonUdf extends UDF {
         long top10_item_bsr1_sum = 0;
 //        top10有bsr1的商品个数
         double top10_item_bsr1_num =0;
-//        top10商品的bsr1总和
+//        top10商品的月销量总和
         long top10_item_month_sold_cnt_sum = 0;
-//        top10有bsr1的商品个数
+//        top10商品的月销量个数
         double top10_item_month_sold_cnt_num =0;
-//        月总销售额
+//        top10商品的月总销售额
         double top10_all_item_month_sold_money_sum = 0;
-//        有月销售额的item个数
+//        top10商品的有月销售额的item个数
         double top10_all_item_month_sold_money_num =0;
 
 //        不同品牌集合
-        Set<String> all_item_set = new HashSet<>();
+        Set<String> all_item_brand_set = new HashSet<>();
 //        top50不同品牌集合
-        Set<String> top50_item_set = new HashSet<>();
+        Set<String> top50_item_brand_set = new HashSet<>();
 //        品牌销量的map
         Map<String,Long> brand_sold_cnt_map = new HashMap<>();
 //        所有商品的跟卖数量
-        long al_item_offer_listing_cnt_sum = 0;
+        long all_item_offer_listing_cnt_sum = 0;
 //        商品fba个数
         long all_item_fba_cnt = 0;
 //        商品fbm个数
@@ -105,24 +105,22 @@ public class amazonUdf extends UDF {
         long new_item_sold_money_sum = 0;
 
         for (Struct item : all_item) {
-            long month_sold_cnt = (long) item.getFieldValue("month_sold_cnt");
-            double month_sold_money = (double) item.getFieldValue("month_sold_money");
-            long week_sold_cnt = (long) item.getFieldValue("week_sold_cnt");
-            double week_sold_money = (double) item.getFieldValue("week_sold_money");
-            long reviews_count = (long) item.getFieldValue("reviews_count");
-            long bsr1 = (long) item.getFieldValue("bsr1");
-            double price = (double) item.getFieldValue("price");
-            double stars = (double) item.getFieldValue("stars");
-            Object item_weight =  item.getFieldValue("item_weight");
-            double item_weight_double = cast_null_negative_double(item_weight);
-            Object product_dimensions = item.getFieldValue("product_dimensions");
-            double product_dimensions_double = cast_null_negative_double(product_dimensions);
-            long rank = (long) item.getFieldValue("rank");
-            String brand = handle_brand_string((String) item.getFieldValue("brand"));
-            long offer_listing = (long) item.getFieldValue("offer_listing");
+            Long month_sold_cnt = (Long) item.getFieldValue("month_sold_cnt");
+            Double month_sold_money = (Double) item.getFieldValue("month_sold_money");
+            Long week_sold_cnt = (Long) item.getFieldValue("week_sold_cnt");
+            Double week_sold_money = (Double) item.getFieldValue("week_sold_money");
+            Long reviews_count = (Long) item.getFieldValue("reviews_count");
+            Long bsr1 = (Long) item.getFieldValue("bsr1");
+            Double price = (Double) item.getFieldValue("price");
+            Double stars = (Double) item.getFieldValue("stars");
+            Double item_weight_double = (Double) item.getFieldValue("item_weight");
+            Double product_dimensions_double = (Double) item.getFieldValue("product_dimensions");
+            Long rank = (Long) item.getFieldValue("rank");
+            String brand = (String) item.getFieldValue("brand");
+            Long offer_listing = (Long) item.getFieldValue("offer_listing");
             String ship = (String) item.getFieldValue("ship");
             String issue_date = (String) item.getFieldValue("issue_date");
-            boolean item_is_new = issue_date != null && !issue_date.isEmpty() && date_is_new(issue_date, 90);
+            boolean item_is_new = date_is_new(issue_date,90);
 
             if (month_sold_cnt > 0) {
                 all_item_month_sold_cnt_sum += month_sold_cnt;
@@ -148,11 +146,11 @@ public class amazonUdf extends UDF {
                 all_item_week_sold_money_sum += week_sold_money;
                 all_item_week_sold_money_num += 1;
             }
-            if(reviews_count>0){
-                all_item_reviews_cnt_sum+=reviews_count;
-                all_item_reviews_cnt_num +=1;
-                if(rank<=10){
-                    top10_item_reviews_cnt_sum+=reviews_count;
+            if(reviews_count > 0){
+                all_item_reviews_cnt_sum += reviews_count;
+                all_item_reviews_cnt_num += 1;
+                if(rank <= 10){
+                    top10_item_reviews_cnt_sum += reviews_count;
                 }
             }
             if (bsr1 > 0) {
@@ -179,19 +177,15 @@ public class amazonUdf extends UDF {
                 all_item_dimensions_sum += product_dimensions_double;
                 all_item_dimensions_num += 1;
             }
-            all_item_set.add(brand);
-            if (rank<=50){
-                top50_item_set.add(brand);
-            }
-            if(!brand.isEmpty()){
-                if(brand_sold_cnt_map.containsKey(brand)){
-                    brand_sold_cnt_map.replace(brand,brand_sold_cnt_map.get(brand)+(reviews_count<0?0:reviews_count));
-                }else{
-                    brand_sold_cnt_map.put(brand,reviews_count<0?0:reviews_count);
+            if (!brand.isEmpty()){
+                all_item_brand_set.add(brand);
+                if(rank<=50){
+                    top50_item_brand_set.add(brand);
                 }
+                map_key_add_value(brand_sold_cnt_map,brand,reviews_count<0?0:reviews_count);
             }
             if(offer_listing>0){
-                al_item_offer_listing_cnt_sum += offer_listing;
+                all_item_offer_listing_cnt_sum += offer_listing;
             }
             switch (ship) {
                 case "AMZ":
@@ -207,81 +201,81 @@ public class amazonUdf extends UDF {
             if (item_is_new){
                 new_item_cnt+=1;
                 if(reviews_count>0){
-                    new_item_reviews_cnt_sum+=reviews_count;
+                    new_item_reviews_cnt_sum += reviews_count;
                 }
                 if(price>0){
-                    new_item_price_sum+=price;
+                    new_item_price_sum += price;
                 }
                 if(stars>0){
-                    new_item_stars_sum +=stars;
+                    new_item_stars_sum += stars;
                 }
                 if(month_sold_cnt>0){
-                    new_item_price_sold_cnt_sum +=month_sold_cnt;
+                    new_item_price_sold_cnt_sum += month_sold_cnt;
                 }
                 if(month_sold_money>0){
-                    new_item_sold_money_sum+=month_sold_money;
+                    new_item_sold_money_sum += month_sold_money;
                 }
             }
         }
 
         JSONObject result = new JSONObject();
 //        月均销量
-        double month_sold_avg = all_item_month_sold_cnt_num==0?-1:all_item_month_sold_cnt_sum/all_item_month_sold_cnt_num;
+        Double month_sold_avg = all_item_month_sold_cnt_num==0?null:all_item_month_sold_cnt_sum/all_item_month_sold_cnt_num;
         result.put("month_sold_avg",month_sold_avg);
 //        月均销售额
-        double month_sold_money_avg = all_item_month_sold_money_num==0?-1:all_item_month_sold_money_sum/all_item_month_sold_money_num;
+        Double month_sold_money_avg = all_item_month_sold_money_num==0?null:all_item_month_sold_money_sum/all_item_month_sold_money_num;
         result.put("month_sold_money_avg",month_sold_money_avg);
 //        周均销量
-        double week_sold_avg = all_item_week_sold_cnt_num==0?-1:all_item_week_sold_cnt_sum/all_item_week_sold_cnt_num;
+        Double week_sold_avg = all_item_week_sold_cnt_num==0?null:all_item_week_sold_cnt_sum/all_item_week_sold_cnt_num;
         result.put("week_sold_avg",week_sold_avg);
 //        周均销售额
-        double week_sold_money_avg = all_item_week_sold_money_num==0?-1:all_item_week_sold_money_sum/all_item_week_sold_money_num;
+        Double week_sold_money_avg = all_item_week_sold_money_num==0?null:all_item_week_sold_money_sum/all_item_week_sold_money_num;
         result.put("week_sold_money_avg",week_sold_money_avg);
 //        平均评论数
-        double reviews_count_avg =all_item_reviews_cnt_num==0?-1:all_item_reviews_cnt_sum/all_item_reviews_cnt_num;
+        Double reviews_count_avg =all_item_reviews_cnt_num==0?null:all_item_reviews_cnt_sum/all_item_reviews_cnt_num;
         result.put("reviews_count_avg",reviews_count_avg);
 //        平均BSR
-        double bsr1_avg = all_item_bsr1_num==0?-1:all_item_bsr1_sum/all_item_bsr1_num;
+        Double bsr1_avg = all_item_bsr1_num==0?null:all_item_bsr1_sum/all_item_bsr1_num;
         result.put("bsr1_avg",bsr1_avg);
 //        平均价格
-        double price_avg = all_item_price_num==0?-1:all_item_price_sum/all_item_price_num;
+        Double price_avg = all_item_price_num==0?null:all_item_price_sum/all_item_price_num;
         result.put("price_avg",price_avg);
 //        平均星级
-        double stars_avg = all_item_stars_num==0?-1:all_item_stars_sum/all_item_stars_num;
+        Double stars_avg = all_item_stars_num==0?null:all_item_stars_sum/all_item_stars_num;
         result.put("stars_avg",stars_avg);
 //        平均重量
-        double weight_avg = all_item_weight_num==0?-1:all_item_weight_sum/all_item_weight_num;
+        Double weight_avg = all_item_weight_num==0?null:all_item_weight_sum/all_item_weight_num;
         result.put("weight_avg",weight_avg);
 //        平均体积
-        double dimensions_avg = all_item_dimensions_num==0?-1:all_item_dimensions_sum/all_item_dimensions_num;
+        Double dimensions_avg = all_item_dimensions_num==0?null:all_item_dimensions_sum/all_item_dimensions_num;
         result.put("dimensions_avg",dimensions_avg);
 //        头部Listing平均BSR
-        double top10_bsr1_avg = top10_item_bsr1_num==0?-1:top10_item_bsr1_sum/top10_item_bsr1_num;
+        Double top10_bsr1_avg = top10_item_bsr1_num==0?null:top10_item_bsr1_sum/top10_item_bsr1_num;
         result.put("top10_bsr1_avg",top10_bsr1_avg);
 //        头部Listing月均销量
-        double top10_month_sold_avg = top10_item_month_sold_cnt_num==0?-1:top10_item_month_sold_cnt_sum/top10_item_month_sold_cnt_num;
+        Double top10_month_sold_avg = top10_item_month_sold_cnt_num==0?null:top10_item_month_sold_cnt_sum/top10_item_month_sold_cnt_num;
         result.put("top10_month_sold_avg",top10_month_sold_avg);
 //        头部Listing月均销售额
-        double top10_month_sold_money_avg = top10_all_item_month_sold_money_num==0?-1:top10_all_item_month_sold_money_sum/top10_all_item_month_sold_money_num;
+        Double top10_month_sold_money_avg = top10_all_item_month_sold_money_num==0?null:top10_all_item_month_sold_money_sum/top10_all_item_month_sold_money_num;
         result.put("top10_month_sold_money_avg",top10_month_sold_money_avg);
 //        前100item品牌数量
-        result.put("brand_cnt",all_item_set.size());
+        result.put("brand_cnt",all_item_brand_set.size());
 //        前50item品牌数量
-        result.put("top50_brand_cnt",top50_item_set.size());
+        result.put("top50_brand_cnt",top50_item_brand_set.size());
 //        商品集中度
-        double top10_item_sold_money_rate = top10_item_reviews_cnt_sum<=0 || all_item_reviews_cnt_sum<=0? -1:top10_item_reviews_cnt_sum/all_item_reviews_cnt_sum;
+        Double top10_item_sold_money_rate = top10_item_reviews_cnt_sum<=0 || all_item_reviews_cnt_sum<=0? null:top10_item_reviews_cnt_sum/all_item_reviews_cnt_sum;
         result.put("top10_item_sold_money_rate",top10_item_sold_money_rate);
 //        品牌集中度
         Long[] brand_sold_cnt_list = brand_sold_cnt_map.values().stream().sorted(Comparator.reverseOrder()).toArray(Long[]::new);
-        double top10_brand_sold_cnt = 0;
+        double top10_brand_review_cnt = 0;
         for(int i=0, n=brand_sold_cnt_list.length;i<n;i++){
-            top10_brand_sold_cnt +=  brand_sold_cnt_list[i];
+            top10_brand_review_cnt +=  brand_sold_cnt_list[i];
             if(i>=10){ break; }
         }
-        double top10_brand_sold_cnt_rate = top10_brand_sold_cnt<=0 || all_item_reviews_cnt_sum<=0? -1:top10_brand_sold_cnt/all_item_reviews_cnt_sum;
+        Double top10_brand_sold_cnt_rate = top10_brand_review_cnt<=0 || all_item_reviews_cnt_sum<=0? null:top10_brand_review_cnt/all_item_reviews_cnt_sum;
         result.put("top10_brand_sold_cnt_rate",top10_brand_sold_cnt_rate);
 //        平均卖家数
-        double seller_cnt_avg = (al_item_offer_listing_cnt_sum + all_item_cnt)/all_item_cnt;
+        double seller_cnt_avg = (all_item_offer_listing_cnt_sum + all_item_cnt)/all_item_cnt;
         result.put("seller_cnt_avg",seller_cnt_avg);
 //        FBA占比
         result.put("fba_rate",all_item_fba_cnt/all_item_cnt);
@@ -290,18 +284,17 @@ public class amazonUdf extends UDF {
 //        AMZ占比
         result.put("amz_rate",all_item_amz_cnt/all_item_cnt);
 //        新品数量占比
-        double new_item_cnt_rate =  new_item_cnt/all_item_cnt;
-        result.put("new_item_cnt_rate",new_item_cnt_rate/all_item_cnt);
+        result.put("new_item_cnt_rate",new_item_cnt/all_item_cnt);
 //        新品平均评论数
-        result.put("new_item_reviews_cnt_sum_avg",new_item_reviews_cnt_sum/all_item_cnt);
+        result.put("new_item_reviews_cnt_sum_avg",new_item_cnt<=0?null:new_item_reviews_cnt_sum/new_item_cnt);
 //        新品平均价格
-        result.put("new_item_price_sum_avg",new_item_price_sum/all_item_cnt);
+        result.put("new_item_price_sum_avg",new_item_cnt<=0?null:new_item_price_sum/new_item_cnt);
 //        新品平均星级
-        result.put("new_item_stars_sum_avg",new_item_stars_sum/all_item_cnt);
+        result.put("new_item_stars_sum_avg",new_item_cnt<=0?null:new_item_stars_sum/new_item_cnt);
 //        新品月均销量
-        result.put("new_item_price_sold_cnt_sum_avg",new_item_price_sold_cnt_sum/all_item_cnt);
+        result.put("new_item_price_sold_cnt_sum_avg",new_item_cnt<=0?null:new_item_price_sold_cnt_sum/new_item_cnt);
 //        新品月均销售额
-        result.put("new_item_sold_money_sum_avg",new_item_sold_money_sum/all_item_cnt);
-        return result.toString();
+        result.put("new_item_sold_money_sum_avg",new_item_cnt<=0?null:new_item_sold_money_sum/new_item_cnt);
+        return result.toJSONString();
     }
 }
