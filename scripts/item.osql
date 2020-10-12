@@ -1,8 +1,8 @@
 --name:item
 --author:apple
 --create time:2020-09-23 16:07
-@start := '2020-09-28';
-@end := '2020-10-05';
+@start := '2020-10-05';
+@end := '2020-10-12';
 
 --- 本周listing去重
 @now_week_unique :=
