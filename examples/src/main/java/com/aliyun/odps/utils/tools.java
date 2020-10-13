@@ -69,7 +69,7 @@ public class tools {
         for(int i=0, n=sort_entry_list.size();i<n;i++){
             double rate = sort_entry_list.get(i).getValue()/month_sold_cnt_double;
             Map.Entry<String, Long> entry = sort_entry_list.get(i);
-            result.append(entry.getKey()).append(":").append(rate).append(":").append(map2.get(entry.getKey())).append("|||");
+            result.append(entry.getKey()).append("###").append(rate).append("###").append(map2.get(entry.getKey())).append("|||");
             if(i>=size){
                 result.trimToSize();
                 break;
@@ -83,7 +83,7 @@ public class tools {
         if(map.size()==0){return "";}
         StringBuilder result = new StringBuilder();
         for (Map.Entry<String, Long> entry : map.entrySet()){
-            result.append(entry.getKey()).append(":").append(entry.getValue()).append("|||");
+            result.append(entry.getKey()).append("###").append(entry.getValue()).append("|||");
         }
         return result.substring(0, result.length() - 3);
     }
@@ -94,7 +94,7 @@ public class tools {
         double month_sold_cnt_double = (double)  month_sold_cnt;
         StringBuilder result = new StringBuilder();
         for (Map.Entry<String, Long> entry : map.entrySet()){
-            result.append(entry.getKey()).append(":").append(entry.getValue()/month_sold_cnt_double).append(":").append(map2.get(entry.getKey())).append("|||");
+            result.append(entry.getKey()).append("###").append(entry.getValue()/month_sold_cnt_double).append("###").append(map2.get(entry.getKey())).append("|||");
         }
         return result.substring(0, result.length() - 3).replace("null","");
     }

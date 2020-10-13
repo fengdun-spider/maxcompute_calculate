@@ -90,6 +90,8 @@ public class amazonMapReduce {
                 if(brand==null || brand.isEmpty()){
                     brand = "未知品牌";
                 }
+                brand = brand.replace("###","").replace("|||","");
+
                 // asin的月销量，可能为null
                 Long month_sold_cnt_long = (Long) value.get("month_sold_cnt");
                 String ship = (String) value.get("ship");
