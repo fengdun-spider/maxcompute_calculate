@@ -2,7 +2,6 @@
 --author:apple
 --create time:2020-09-23 16:07
 @start := '2020-10-05';
-@end := '2020-10-12';
 
 --- 本周listing去重
 @now_week_unique :=
@@ -15,7 +14,7 @@
   from (
     select *, count(asin)over (partition by asin order by asin) as cnt
     from listingitem
-    where pt >= @start and pt < @end and product_node != '') a
+    where pt >= @start and pt < cast(dateadd(to_date(@start, 'yyyy-mm-dd'), +7, 'dd') as string) and product_node != '') a
   where a.cnt = 1;
 
 -- 上1周listing去重
@@ -25,7 +24,7 @@
     select *, count(asin)over (partition by asin order by asin) as cnt
     from listingitem
     where pt >= cast(dateadd(to_date(@start, 'yyyy-mm-dd'), -7, 'dd') as string)
-    and pt < cast(dateadd(to_date(@end, 'yyyy-mm-dd'), -7, 'dd') as string)) a
+    and pt < @start) a
   where a.cnt = 1;
 
 -- 上2周listing去重
@@ -35,7 +34,7 @@
     select *, count(asin)over (partition by asin order by asin) as cnt
     from listingitem
     where pt >= cast(dateadd(to_date(@start, 'yyyy-mm-dd'), -14, 'dd') as string)
-    and pt < cast(dateadd(to_date(@end, 'yyyy-mm-dd'), -14, 'dd') as string)) a
+    and pt < cast(dateadd(to_date(@start, 'yyyy-mm-dd'), -7, 'dd') as string)) a
   where a.cnt = 1;
 
 -- 上3周listing去重
@@ -45,7 +44,7 @@
     select *, count(asin)over (partition by asin order by asin) as cnt
     from listingitem
     where pt >= cast(dateadd(to_date(@start, 'yyyy-mm-dd'), -21, 'dd') as string)
-    and pt < cast(dateadd(to_date(@end, 'yyyy-mm-dd'), -21, 'dd') as string)) a
+    and pt < cast(dateadd(to_date(@start, 'yyyy-mm-dd'), -14, 'dd') as string)) a
   where a.cnt = 1;
 
 -- 连接四周数据
