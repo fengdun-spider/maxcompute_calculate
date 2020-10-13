@@ -142,10 +142,8 @@ public class amazonMapReduce {
             result_json.put("ana_total_asin_cnt",ana_total_asin_cnt);
             // 类目下总销量
             result_json.put("ana_month_sold_cnt_sum",ana_month_sold_cnt_sum);
-            // 前30品牌对应其asin个数
-            result_json.put("ana_top30_brand_asin_cnt", sortMapByValues_string(brand_asin_cnt_map, 30));
-            // 前30品牌对应其月销量占比
-            result_json.put("ana_top30_brand_sold_cnt_rate",sortMapByValues_string(brand_month_sold_cnt_map,30,ana_month_sold_cnt_sum));
+            // 前30品牌分布
+            result_json.put("ana_top30_brand",sortMapByValues_string_combine(brand_month_sold_cnt_map,30,ana_month_sold_cnt_sum,brand_asin_cnt_map));
             // fma个数
             result_json.put("ana_ship_fba_cnt_sum",ana_ship_fba_cnt_sum);
             // fbm个数
@@ -166,18 +164,14 @@ public class amazonMapReduce {
                         map_key_add_value(price_range_month_sold_cnt_map,price_range,month_sold);
                     }
                 }
-            result_json.put("ana_price_range_asin_cnt",map_2_string(price_range_asin_cnt_map));
-            result_json.put("ana_price_range_month_sold_cnt_rate",map_2_string(price_range_month_sold_cnt_map,ana_month_sold_cnt_sum));
+            result_json.put("ana_price_range",map_2_string_combine(price_range_month_sold_cnt_map,ana_month_sold_cnt_sum,price_range_asin_cnt_map));
             }else{
-                result_json.put("ana_price_range_asin_cnt","");
-                result_json.put("ana_price_range_month_sold_cnt_rate","");
+                result_json.put("ana_price_range","");
             }
             // 星级分布
-            result_json.put("ana_stars_range_asin_cnt",map_2_string(stars_range_asin_cnt_map));
-            result_json.put("ana_stars_range_month_sold_cnt_rate",map_2_string(stars_range_month_sold_cnt_map,ana_month_sold_cnt_sum));
+            result_json.put("ana_stars_range",map_2_string_combine(stars_range_month_sold_cnt_map,ana_month_sold_cnt_sum,stars_range_asin_cnt_map));
             // 评分数分布
-            result_json.put("ana_reviews_cnt_range_asin_cnt",map_2_string(reviews_cnt_range_asin_cnt_map));
-            result_json.put("ana_reviews_cnt_range_month_sold_cnt_rate",map_2_string(reviews_cnt_range_month_sold_cnt_map,ana_month_sold_cnt_sum));
+            result_json.put("ana_reviews_cnt_range",map_2_string_combine(reviews_cnt_range_month_sold_cnt_map,ana_month_sold_cnt_sum,reviews_cnt_range_asin_cnt_map));
             result.set(0,key.get("product_node"));
             result.set(1,result_json.toJSONString());
 //            System.out.println(result_json.toJSONString());

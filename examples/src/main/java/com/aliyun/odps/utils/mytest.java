@@ -1,9 +1,16 @@
 package com.aliyun.odps.utils;
 
-import static com.aliyun.odps.utils.tools.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class mytest {
+
     public static void main(String[] args){
-        System.out.println(date_is_new(null,30));
+        StringBuilder result = new StringBuilder();
+        Map<String,Integer> aa = new HashMap<>();
+        aa.put("a",2) ;
+        result.append("|||").append(aa.get("b")).append("222");
+        System.out.println(result);
+
     }
 }

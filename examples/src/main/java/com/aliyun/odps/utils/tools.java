@@ -60,36 +60,22 @@ public class tools {
                 .collect(Collectors.toList());
     }
 
-    //    map按照value排序 ,并取指定数量键值对字符串
-    public static String sortMapByValues_string(Map<String, Long> map,int size) {
-        if(map.size()==0){return "";}
-        StringBuilder result = new StringBuilder();
-        List<Map.Entry<String, Long>> sort_entry_list = sorted_entry_by_value(map);
-        for(int i=0, n=sort_entry_list.size();i<n;i++){
-            result.append(sort_entry_list.get(i).getKey()).append(":").append(sort_entry_list.get(i).getValue().toString()).append("|||");
-            if(i>=size){
-                result.trimToSize();
-                break;
-            }
-        }
-        return result.substring(0, result.length() - 3);
-    }
-
     //  map按照value排序 ,并取指定数量键值对字符串,,,,
-    public static String sortMapByValues_string(Map<String, Long> map,int size,long month_sold_cnt) {
+    public static String sortMapByValues_string_combine(Map<String, Long> map,int size,long month_sold_cnt,Map<String, Long> map2) {
         if(map.size()==0 || month_sold_cnt<=0){return "";}
         double month_sold_cnt_double = (double)  month_sold_cnt;
         StringBuilder result = new StringBuilder();
         List<Map.Entry<String, Long>> sort_entry_list = sorted_entry_by_value(map);
         for(int i=0, n=sort_entry_list.size();i<n;i++){
             double rate = sort_entry_list.get(i).getValue()/month_sold_cnt_double;
-            result.append(sort_entry_list.get(i).getKey()).append(":").append(rate).append("|||");
+            Map.Entry<String, Long> entry = sort_entry_list.get(i);
+            result.append(entry.getKey()).append(":").append(rate).append(":").append(map2.get(entry.getKey())).append("|||");
             if(i>=size){
                 result.trimToSize();
                 break;
             }
         }
-        return result.substring(0, result.length() - 3);
+        return result.substring(0, result.length() - 3).replace("null","");
     }
 
     //  map变成string返回
@@ -103,14 +89,14 @@ public class tools {
     }
 
     //  map变成string返回,,,,
-    public static String map_2_string(Map<String, Long> map,long month_sold_cnt) {
+    public static String map_2_string_combine(Map<String, Long> map,long month_sold_cnt,Map<String, Long> map2) {
         if(map.size()==0 ||month_sold_cnt<=0){return "";}
         double month_sold_cnt_double = (double)  month_sold_cnt;
         StringBuilder result = new StringBuilder();
         for (Map.Entry<String, Long> entry : map.entrySet()){
-            result.append(entry.getKey()).append(":").append(entry.getValue()/month_sold_cnt_double).append("|||");
+            result.append(entry.getKey()).append(":").append(entry.getValue()/month_sold_cnt_double).append(":").append(map2.get(entry.getKey())).append("|||");
         }
-        return result.substring(0, result.length() - 3);
+        return result.substring(0, result.length() - 3).replace("null","");
     }
 
     // 价格分布
