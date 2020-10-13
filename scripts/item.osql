@@ -59,7 +59,7 @@
 
 
 -- 插入分析结果到结果表
-insert into table listingitem_result partition(pt = @start)
+insert overwrite table listingitem_result partition(pt = @start)
   select
   if(reviews_count_int<reviews_count2, null, reviews_count_int - reviews_count2) * 75 as week_sold_cnt, --周销量
   if(reviews_count_int<reviews_count2, null, reviews_count_int - reviews_count2) * 75 * price_doulbe as week_sold_money, --周销售额

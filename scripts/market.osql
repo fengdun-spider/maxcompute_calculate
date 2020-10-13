@@ -46,7 +46,7 @@ select product_node,product_path, amazonudf(data) as result from (
 
 
 --连接上mapreduce表的结果，得到类目计算的最终结果
-insert into table listingitem_market_result partition(pt = @start)
+insert overwrite table listingitem_market_result partition(pt = @start)
 select
 a.product_node as product_node,
 b.product_path as product_path,
