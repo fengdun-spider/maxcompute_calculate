@@ -127,7 +127,7 @@ public class amazonMapReduce {
                 }
                 // asin有发布日期，聚合发布日期，统计每个月发布asin个数，3前的时间不聚合
                 if(date_is_new(issue_date,1095)){
-                    map_key_add_value(issue_date_asin_cnt_map,issue_date,1);
+                    map_key_add_value(issue_date_asin_cnt_map,issue_date.replaceAll("-\\d+$","-01"),1);
                 }
                 // 存储价格和月销量
                 if (price_double !=null && price_double>0){
