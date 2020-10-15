@@ -1,0 +1,6 @@
+GET amz_listing_test/_search
+{
+  "query": {
+    "match_all": {}
+  }
+}
