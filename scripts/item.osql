@@ -67,7 +67,7 @@ insert overwrite table listingitem_result partition(pt = @start)
   if(reviews_count_int<reviews_count4, null, reviews_count_int - reviews_count4) * 75 * price_doulbe as month_sold_money, --月销售额
   (reviews_count_int - reviews_count4) as month_increase_reviews_count, --月新增评价人数
   product_dimensions_double as product_dimensions, --体积
-  issue_date, --上架时间
+  to_date(issue_date,'yyyy-mm-dd'), --上架时间
   cast(bsr1 as int), --大类排名
   GREATEST(bsr1_int,bsr1_2,bsr1_3,bsr1_4) as month_max_bsr1,
   LEAST(bsr1_int,bsr1_2,bsr1_3,bsr1_4) as month_min_bsr1,
@@ -96,7 +96,7 @@ insert overwrite table listingitem_result partition(pt = @start)
   cast(bsr2 as int), --二级类目排名
   cast(ship_fee as double),
   page_title,
-  add_date_time,
+  to_date(add_date_time,'yyyy-mm-dd hh:mi:ss'),
   bsr3path, --二级类目名称
   cast(bsr3 as int), --二级类目排名
   bsr4path, --二级类目名称
