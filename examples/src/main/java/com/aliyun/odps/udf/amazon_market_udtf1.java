@@ -34,7 +34,9 @@ public class amazon_market_udtf1 extends UDTF {
                 sales_proportion = null;
             }else{
                 sales_proportion = Double.parseDouble(sales_proportion_string);
+                sales_proportion = Double.parseDouble(String.format("%.2f",sales_proportion));
             }
+
             forward(node_id, cate,products_count,sales_proportion);
         }
     }
