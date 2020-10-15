@@ -27,7 +27,7 @@ public class amazon_market_udtf2 extends UDTF {
             }else{
                 products_count = Long.parseLong(products_count_string);
             }
-            String data = (String) ond_field_array[1];
+            String data = (String) ond_field_array[0];
             forward(node_id, products_count,data);
         }
     }
