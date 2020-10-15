@@ -58,59 +58,60 @@
 
 
 -- 插入分析结果到结果表
-insert overwrite table listingitem_result partition(pt = @start)
-  select
-  if(reviews_count_int<reviews_count2, null, reviews_count_int - reviews_count2) * 75 as week_sold_cnt, --周销量
-  if(reviews_count_int<reviews_count2, null, reviews_count_int - reviews_count2) * 75 * price_doulbe as week_sold_money, --周销售额
-  (reviews_count_int - reviews_count2) as week_increase_reviews_count, --周新增评价人数
-  if(reviews_count_int<reviews_count4, null, reviews_count_int - reviews_count4) * 75 as month_sold_cnt, --月销量
-  if(reviews_count_int<reviews_count4, null, reviews_count_int - reviews_count4) * 75 * price_doulbe as month_sold_money, --月销售额
-  (reviews_count_int - reviews_count4) as month_increase_reviews_count, --月新增评价人数
-  product_dimensions_double as product_dimensions, --体积
-  to_date(issue_date,'yyyy-mm-dd'), --上架时间
-  cast(bsr1 as int), --大类排名
-  GREATEST(bsr1_int,bsr1_2,bsr1_3,bsr1_4) as month_max_bsr1,
-  LEAST(bsr1_int,bsr1_2,bsr1_3,bsr1_4) as month_min_bsr1,
-  price_doulbe as price, --价格
-  reviews_count_int as reviews_count, --评论人数
-  cast(stars as double), --评分
-  cast(offer_listing as int), --数量跟卖
-  ship, --物流
-  asin,
-  REGEXP_REPLACE(brand,"Visit the | Store|Brand: ","",0) as brand, --品牌
-  soldby, --卖家
-  img1,
-  img2,
-  img3,
-  img4,
-  img5,
-  product_title, --标题
-  product_path,  --类目名
-  shipping_weight, --物流重量
-  cast(ask_count as int), --q/a数量
-  item_weight_double as item_weight, --重量
-  node_id, --节点id
-  product_node, --多层类目节点id
-  bsr1path, --一级类目名称
-  bsr2path, --二级类目名称
-  cast(bsr2 as int), --二级类目排名
-  cast(ship_fee as double),
-  page_title,
-  to_date(add_date_time,'yyyy-mm-dd hh:mi:ss'),
-  bsr3path, --二级类目名称
-  cast(bsr3 as int), --二级类目排名
-  bsr4path, --二级类目名称
-  cast(bsr4 as int), --二级类目排名
-  bsr5path, --二级类目名称
-  cast(bsr5 as int), --二级类目排名,
-  case
-  when (product_dimensions_double is null or item_weight_double is null) then "其它尺寸"
-  when (product_dimensions_double<=135 and item_weight_double<=0.75) then "小号标准尺寸"
-  when (product_dimensions_double<=2016 and item_weight_double<=20) then "大号标准尺寸"
-  when (product_dimensions_double<=23400 and item_weight_double<=70) then "小号大件"
-  when (product_dimensions_double<=50400 and item_weight_double<150) then "中号大件"
-  when (product_dimensions_double<=108200 and item_weight_double<150) then "大号大件"
-  when (product_dimensions_double>108200 or  item_weight_double>150) then "特殊大件"
-  else "其它尺寸"
-  end as product_size--商品尺寸
-  from @all_join;
+-- insert overwrite table listingitem_result partition(pt = @start)
+select
+if(reviews_count_int<reviews_count2, null, reviews_count_int - reviews_count2) * 75 as week_sold_cnt, --周销量
+round(if(reviews_count_int<reviews_count2, null, reviews_count_int - reviews_count2) * 75 * price_doulbe,2) as week_sold_money, --周销售额
+(reviews_count_int - reviews_count2) as week_increase_reviews_count, --周新增评价人数
+if(reviews_count_int<reviews_count4, null, reviews_count_int - reviews_count4) * 75 as month_sold_cnt, --月销量
+round(if(reviews_count_int<reviews_count4, null, reviews_count_int - reviews_count4) * 75 * price_doulbe,2) as month_sold_money, --月销售额
+(reviews_count_int - reviews_count4) as month_increase_reviews_count, --月新增评价人数
+round(product_dimensions_double,2) as product_dimensions, --体积
+to_date(issue_date,'yyyy-mm-dd'), --上架时间
+cast(bsr1 as int), --大类排名
+GREATEST(bsr1_int,bsr1_2,bsr1_3,bsr1_4) as month_max_bsr1,
+LEAST(bsr1_int,bsr1_2,bsr1_3,bsr1_4) as month_min_bsr1,
+round(price_doulbe,2) as price, --价格
+reviews_count_int as reviews_count, --评论人数
+round(cast(stars as double),2), --评分
+cast(offer_listing as int), --数量跟卖
+ship, --物流
+asin,
+REGEXP_REPLACE(brand,"Visit the | Store|Brand: ","",0) as brand, --品牌
+soldby, --卖家
+img1,
+img2,
+img3,
+img4,
+img5,
+product_title, --标题
+product_path,  --类目名
+shipping_weight, --物流重量
+cast(ask_count as int), --q/a数量
+round(item_weight_double,2) as item_weight, --重量
+node_id, --节点id
+product_node, --多层类目节点id
+bsr1path, --一级类目名称
+bsr2path, --二级类目名称
+cast(bsr2 as int), --二级类目排名
+round(cast(ship_fee as double),2),
+page_title,
+to_date(add_date_time,'yyyy-mm-dd hh:mi:ss'),
+bsr3path, --二级类目名称
+cast(bsr3 as int), --二级类目排名
+bsr4path, --二级类目名称
+cast(bsr4 as int), --二级类目排名
+bsr5path, --二级类目名称
+cast(bsr5 as int), --二级类目排名,
+case
+when (product_dimensions_double is null or item_weight_double is null) then "其它尺寸"
+when (product_dimensions_double<=135 and item_weight_double<=0.75) then "小号标准尺寸"
+when (product_dimensions_double<=2016 and item_weight_double<=20) then "大号标准尺寸"
+when (product_dimensions_double<=23400 and item_weight_double<=70) then "小号大件"
+when (product_dimensions_double<=50400 and item_weight_double<150) then "中号大件"
+when (product_dimensions_double<=108200 and item_weight_double<150) then "大号大件"
+when (product_dimensions_double>108200 or  item_weight_double>150) then "特殊大件"
+else "其它尺寸"
+end as product_size--商品尺寸
+from @all_join;
+
