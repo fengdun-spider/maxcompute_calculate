@@ -1,0 +1,147 @@
+PUT amz_listing
+{
+  "mappings": {
+    "properties": {
+      "asin": {
+        "type": "keyword"
+      },
+      "node_id": {
+        "type": "keyword"
+      },
+      "product_title": {
+        "type": "text",
+        "analyzer": "english"
+      },
+      "brand": {
+        "type": "text",
+        "analyzer": "english"
+      },
+      "product_path": {
+        "type": "text",
+        "index": false
+      },
+      "product_node": {
+        "type": "text",
+        "index": false
+      },
+      "img1": {
+        "type": "text",
+        "index": false
+      },
+      "img2": {
+        "type": "text",
+        "index": false
+      },
+      "img3": {
+        "type": "text",
+        "index": false
+      },
+      "img4": {
+        "type": "text",
+        "index": false
+      },
+      "img5": {
+        "type": "text",
+        "index": false
+      },
+      "price": {
+        "type": "scaled_float",
+        "scaling_factor": 100
+      },
+      "reviews_count": {
+        "type": "integer"
+      },
+      "ask_count": {
+        "type": "integer"
+      },
+      "stars": {
+        "type": "float"
+      },
+      "offer_listing": {
+        "type": "integer"
+      },
+      "soldby": {
+        "type": "keyword"
+      },
+      "ship": {
+        "type": "keyword"
+      },
+      "ship_fee": {
+        "type": "scaled_float",
+        "scaling_factor": 100
+      },
+      "bsr1": {
+        "type": "integer"
+      },
+      "bsr1path": {
+        "type": "text",
+        "index": false
+      },
+      "bsr2": {
+        "type": "integer"
+      },
+      "bsr2path": {
+        "type": "text",
+        "index": false
+      },
+      "bsr3": {
+        "type": "integer"
+      },
+      "bsr3path": {
+        "type": "text",
+        "index": false
+      },
+      "bsr4": {
+        "type": "integer"
+      },
+      "bsr4path": {
+        "type": "text",
+        "index": false
+      },
+      "bsr5": {
+        "type": "integer"
+      },
+      "bsr5path": {
+        "type": "text",
+        "index": false
+      },
+      "product_dimensions": {
+        "type": "text",
+        "index": false
+      },
+      "item_weight": {
+        "type": "text",
+        "index": false
+      },
+      "issue_date": {
+        "type": "date"
+      },
+      "week_increase_reviews_count": {
+        "type": "integer"
+      },
+      "week_sales": {
+        "type": "integer"
+      },
+      "week_sales_volume": {
+        "type": "scaled_float",
+        "scaling_factor": 100
+      },
+      "month_increase_reviews_count": {
+        "type": "integer"
+      },
+      "month_sales": {
+        "type": "integer"
+      },
+      "month_sales_volume": {
+        "type": "scaled_float",
+        "scaling_factor": 100
+      },
+      "product_size": {
+        "type": "keyword"
+      },
+      "add_date_time": {
+        "type": "date"
+      }
+    }
+  }
+}
