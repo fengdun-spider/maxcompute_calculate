@@ -1,0 +1,75 @@
+--name:amazon_temp
+--author:apple
+--create time:2020-10-15 16:39
+@start := '${start}';
+
+-- 创建mysql market同步临时表
+CREATE TABLE amazon_market_temp LIFECYCLE 1 as
+  SELECT
+  SPLIT_PART(product_node,":",1) as node_id,
+  SPLIT_PART(product_path,"›",1) as market_name,
+  product_path as market_path,
+  product_node as market_node,
+  cast(GET_JSON_OBJECT(market1,'$.month_sold_avg')as int) as avg_sales,
+  cast(GET_JSON_OBJECT(market1,'$.top10_month_sold_avg') as int) as head_avg_sales,
+  round(cast(GET_JSON_OBJECT(market1,'$.month_sold_money_avg') as double),2) as avg_sales_volume,
+  round(cast(GET_JSON_OBJECT(market1,'$.top10_month_sold_money_avg') as double),2) as head_avg_sales_volume,
+  round(cast(GET_JSON_OBJECT(market1,'$.price_avg') as double),2) as avg_price,
+  round(cast(GET_JSON_OBJECT(market1,'$.stars_avg') as double),2) as avg_stars,
+  cast(GET_JSON_OBJECT(market1,'$.reviews_count_avg') as int) as avg_reviews_count,
+  cast(GET_JSON_OBJECT(market1,'$.seller_cnt_avg') as int) as avg_sellers_count,
+  cast(GET_JSON_OBJECT(market1,'$.bsr1_avg') as int) as avg_bsr,
+  cast(GET_JSON_OBJECT(market1,'$.top10_bsr1_avg') as int) as head_avg_bsr,
+  round(cast(GET_JSON_OBJECT(market1,'$.amz_rate') as double),2) as amz_proportion,
+  round(cast(GET_JSON_OBJECT(market1,'$.fba_rate') as double),2) as fba_proportion,
+  round(cast(GET_JSON_OBJECT(market1,'$.fbm_rate') as double),2) as fbm_proportion,
+  round(cast(GET_JSON_OBJECT(market1,'$.weight_avg')as double),2) as avg_weight,
+  round(cast(GET_JSON_OBJECT(market1,'$.dimensions_avg')as double),2) as avg_size,
+  cast(GET_JSON_OBJECT(market1,'$.top50_brand_cnt') as int) as top_50_brand_count,
+  cast(GET_JSON_OBJECT(market1,'$.brand_cnt') as int) as top_100_brand_count,
+  round(cast(GET_JSON_OBJECT(market1,'$.top10_item_sold_money_rate')as double),2) as product_concentration,
+  round(cast(GET_JSON_OBJECT(market1,'$.top10_brand_sold_cnt_rate')as double),2) as brand_concentration,
+  round(cast(GET_JSON_OBJECT(market1,'$.new_item_cnt_rate')as double),2) as new_products_proportion,
+  cast(GET_JSON_OBJECT(market1,'$.new_item_reviews_cnt_sum_avg') as int) as new_products_avg_reviews_count,
+  round(cast(GET_JSON_OBJECT(market1,'$.new_item_stars_sum_avg')as double),2) as new_products_avg_stars,
+  round(cast(GET_JSON_OBJECT(market1,'$.new_item_price_sum_avg')as double),2) as new_products_avg_price,
+  cast(GET_JSON_OBJECT(market1,'$.new_item_price_sold_cnt_sum_avg') as int) as new_products_avg_sales,
+  round(cast(GET_JSON_OBJECT(market1,'$.new_item_sold_money_sum_avg')as double),2) as new_products_avg_sales_volume,
+  to_date(pt,'yyyy-mm-dd') as add_date_time,
+  cast(GET_JSON_OBJECT(market2,"$.ana_month_sold_cnt_sum") as int) as ana_month_sold_cnt_sum
+  from listingitem_market_result where pt = @start;
+
+-- 创建mysql market_brand同步临时表
+CREATE TABLE amazon_market_brand_temp LIFECYCLE 1 as
+  SELECT amazon_market_udtf1(node_id,ana_top30_brand) as (node_id, brand, products_count, sales_proportion)
+  from (select SPLIT_PART(product_node,":",1) as node_id,
+               GET_JSON_OBJECT(market2,"$.ana_top30_brand") as ana_top30_brand
+        from listingitem_market_result where pt = @start);
+
+--  创建mysql market_price同步临时表
+CREATE TABLE amazon_market_price_temp LIFECYCLE 1 as
+  SELECT amazon_market_udtf1(node_id,ana_price_range) as (node_id, price, products_count, sales_proportion)
+  from (select SPLIT_PART(product_node,":",1) as node_id,
+               GET_JSON_OBJECT(market2,"$.ana_price_range") as ana_price_range
+        from listingitem_market_result where pt = @start);
+
+-- 创建mysql market_review_counts同步临时表
+CREATE TABLE amazon_market_review_counts_temp LIFECYCLE 1 as
+  SELECT amazon_market_udtf1(node_id,ana_reviews_cnt_range) as (node_id, review_counts, products_count, sales_proportion)
+  from (select SPLIT_PART(product_node,":",1) as node_id,
+               GET_JSON_OBJECT(market2,"$.ana_reviews_cnt_range") as ana_reviews_cnt_range
+        from listingitem_market_result where pt = @start);
+
+-- 创建mysql market_stars同步临时表
+CREATE TABLE amazon_market_stars_temp LIFECYCLE 1 as
+  SELECT amazon_market_udtf1(node_id,ana_stars_range) as (node_id, stars, products_count, sales_proportion)
+  from (select SPLIT_PART(product_node,":",1) as node_id,
+               GET_JSON_OBJECT(market2,"$.ana_stars_range") as ana_stars_range
+        from listingitem_market_result where pt = @start);
+
+-- 创建mysql market_new_products 同步临时表
+CREATE TABLE amazon_market_new_products_temp LIFECYCLE 1 as
+  SELECT amazon_market_udtf2(node_id,ana_date_exhibit_asin_cnt_sum) as (node_id, new_products, stat_date)
+  from (select SPLIT_PART(product_node,":",1) as node_id,
+               GET_JSON_OBJECT(market2,"$.ana_date_exhibit_asin_cnt_sum") as ana_date_exhibit_asin_cnt_sum
+        from listingitem_market_result where pt = @start);
