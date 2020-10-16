@@ -9,7 +9,7 @@ create table listingitem_result(
   month_sold_money             double,
   month_increase_reviews_count bigint,
   product_dimensions           double,
-  issue_date                   DATETIME,
+  issue_date                   string,
   bsr1                         bigint,
   month_max_bsr1               bigint,
   month_min_bsr1               bigint,
