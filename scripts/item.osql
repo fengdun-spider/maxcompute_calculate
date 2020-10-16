@@ -67,7 +67,7 @@ if(reviews_count_int<reviews_count4, null, reviews_count_int - reviews_count4) *
 round(if(reviews_count_int<reviews_count4, null, reviews_count_int - reviews_count4) * 75 * price_doulbe,2) as month_sold_money, --月销售额
 (reviews_count_int - reviews_count4) as month_increase_reviews_count, --月新增评价人数
 round(product_dimensions_double,2) as product_dimensions, --体积
-to_date(issue_date,'yyyy-mm-dd'), --上架时间
+issue_date, --上架时间
 cast(bsr1 as int), --大类排名
 GREATEST(bsr1_int,bsr1_2,bsr1_3,bsr1_4) as month_max_bsr1,
 LEAST(bsr1_int,bsr1_2,bsr1_3,bsr1_4) as month_min_bsr1,
