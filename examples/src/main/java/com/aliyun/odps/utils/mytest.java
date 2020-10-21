@@ -12,6 +12,7 @@ public class mytest {
         aa.put("b",5L);
         aa.put("c",2L);
         aa.put("e",3L);
+        System.out.println(tools.sortMapByValues(aa));
 
 
     }
