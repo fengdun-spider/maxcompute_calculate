@@ -7,13 +7,12 @@ public class mytest {
 
     public static void main(String[] args){
         StringBuilder result = new StringBuilder();
-        Map<String,Integer> aa = new HashMap<>();
-        String a;
-        a = "111###2";
-//        System.out.println(Math.round(0.111,2));
-//        aa.put("a",2) ;
-//        result.append("|||").append(aa.get("b")).append("222");
-//        System.out.println(result);
+        Map<String,Long> aa = new HashMap<>();
+        aa.put("a",1L);
+        aa.put("b",5L);
+        aa.put("c",2L);
+        aa.put("e",3L);
+
 
     }
 }

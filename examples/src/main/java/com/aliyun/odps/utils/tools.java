@@ -51,21 +51,15 @@ public class tools {
         }
     }
 
-    //    map按照value排序
-    public static List<Map.Entry<String, Long>> sorted_entry_by_value(Map<String, Long> aMap) {
-        HashMap<String, Long> finalOut = new LinkedHashMap<>();
-        return aMap.entrySet()
-                .stream()
-                .sorted((p1, p2) -> p2.getValue().compareTo(p1.getValue()))
-                .collect(Collectors.toList());
-    }
-
     //  map按照value排序 ,并取指定数量键值对字符串,,,,
     public static String sortMapByValues_string_combine(Map<String, Long> map,int size,long month_sold_cnt,Map<String, Long> map2) {
         if(map.size()==0 || month_sold_cnt<=0){return "";}
         double month_sold_cnt_double = (double)  month_sold_cnt;
         StringBuilder result = new StringBuilder();
-        List<Map.Entry<String, Long>> sort_entry_list = sorted_entry_by_value(map);
+        List<Map.Entry<String, Long>> sort_entry_list = map.entrySet()
+                .stream()
+                .sorted((p1, p2) -> p2.getValue().compareTo(p1.getValue()))
+                .collect(Collectors.toList());
         for(int i=0, n=sort_entry_list.size();i<n;i++){
             double rate = sort_entry_list.get(i).getValue()/month_sold_cnt_double;
             Map.Entry<String, Long> entry = sort_entry_list.get(i);
