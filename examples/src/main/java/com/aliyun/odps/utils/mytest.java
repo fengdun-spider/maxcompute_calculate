@@ -12,7 +12,8 @@ public class mytest {
         aa.put("b",5L);
         aa.put("c",2L);
         aa.put("e",3L);
-        System.out.println(tools.sortMapByValues(aa));
+
+        System.out.println(tools.get_double_acc(1.2222,2));
 
 
     }

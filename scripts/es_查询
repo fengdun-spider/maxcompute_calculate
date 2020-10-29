@@ -4,3 +4,22 @@ GET amz_listing_test/_search
     "match_all": {}
   }
 }
+
+
+字段包含
+GET amz_listing/_search
+{
+"query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "node_id": "166868011"
+          }
+        }
+      ],
+      "should": [],
+      "must_not": []
+    }
+}
+}

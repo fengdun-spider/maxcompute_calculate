@@ -1,5 +1,6 @@
 package com.aliyun.odps.utils;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -174,4 +175,10 @@ public class tools {
         return finalOut;
     }
 
+    // 获取两位小数
+    public static  Double get_double_acc(Double value,Integer acc){
+        if (value==null) return null;
+        BigDecimal decimal = new BigDecimal(value);
+        return decimal.setScale(acc,BigDecimal.ROUND_HALF_UP).doubleValue();
+    }
 }
