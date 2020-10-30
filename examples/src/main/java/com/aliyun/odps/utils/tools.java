@@ -95,7 +95,7 @@ public class tools {
         double month_sold_cnt_double = (double) month_sold_cnt;
         StringBuilder result = new StringBuilder();
         for (Map.Entry<String, Long> entry : map.entrySet()) {
-            result.append(entry.getKey()).append("###").append(entry.getValue() / month_sold_cnt_double).append("###").append(map2.get(entry.getKey())).append("|||");
+            result.append(entry.getKey()).append("###").append(get_double_acc(entry.getValue() / month_sold_cnt_double,2)).append("###").append(map2.get(entry.getKey())).append("|||");
         }
         return result.substring(0, result.length() - 3).replace("null", "");
     }
