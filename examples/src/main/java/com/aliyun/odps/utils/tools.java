@@ -53,6 +53,26 @@ public class tools {
     }
 
     //  map按照value排序 ,并取指定数量键值对字符串,,,,
+    public static String sortMapByValues_string_combine(Map<String, Long> map, int size) {
+        if (map.isEmpty()) return "";
+        StringBuilder result = new StringBuilder();
+        List<Map.Entry<String, Long>> sort_entry_list = map.entrySet()
+                .stream()
+                .sorted((p1, p2) -> p2.getValue().compareTo(p1.getValue()))
+                .collect(Collectors.toList());
+        for (int i = 0, n = sort_entry_list.size(); i < n; i++) {
+            Map.Entry<String, Long> entry = sort_entry_list.get(i);
+            result.append(entry.getKey()).append("###").append(entry.getValue()).append("|||");
+            if (i >= size) {
+                result.trimToSize();
+                break;
+            }
+        }
+        return result.substring(0, result.length() - 3).replace("null", "");
+    }
+
+
+    //  map按照value排序 ,并取指定数量键值对字符串,,,,
     public static String sortMapByValues_string_combine(Map<String, Long> map, int size, long month_sold_cnt, Map<String, Long> map2) {
         if (map.size() == 0 || month_sold_cnt <= 0) {
             return "";
@@ -181,4 +201,18 @@ public class tools {
         BigDecimal decimal = new BigDecimal(value);
         return decimal.setScale(acc,BigDecimal.ROUND_HALF_UP).doubleValue();
     }
+
+    public static void split_string(Map<String, Long> amap,String words){
+        if (words ==null || words.isEmpty()) return;
+        words = words.replaceAll("#|,|\\.|:|;|\\?","");
+        for (String word :words.split(" ")){
+            if (!word.isEmpty() && !word.equals("and") && !word.equals("the") && !word.equals("with") &&
+                    !word.equals("in") && !word.equals("by") && !word.equals("its") && !word.equals("for") &&
+                    !word.equals("of") && !word.equals("an") && !word.equals("to") && !word.equals("&") &&
+                    !word.equals("on") && !word.equals("at") && !word.equals("into") && !word.equals("from")){
+                map_key_add_value(amap,word,1);
+            }
+        }
+    }
+
 }

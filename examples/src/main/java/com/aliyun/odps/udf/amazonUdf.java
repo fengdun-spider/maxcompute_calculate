@@ -219,6 +219,8 @@ public class amazonUdf extends UDF {
         }
 
         JSONObject result = new JSONObject();
+//        样本数
+        result.put("all_item_cnt",all_item_cnt);
 //        月均销量
         Double month_sold_avg = all_item_month_sold_cnt_num==0?null:all_item_month_sold_cnt_sum/all_item_month_sold_cnt_num;
         result.put("month_sold_avg",month_sold_avg);

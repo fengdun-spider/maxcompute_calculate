@@ -19,15 +19,15 @@ public class amazon_market_udtf2 extends UDTF {
             if (!field.contains("#")){
                 continue;
             }
-            Object[] ond_field_array = field.split("###");
-            String products_count_string = (String) ond_field_array[1];
+            String[] ond_field_array = field.split("###");
+            String products_count_string = ond_field_array[1];
             Long products_count;
             if ( products_count_string==null || products_count_string.isEmpty()){
                 products_count = null;
             }else{
                 products_count = Long.parseLong(products_count_string);
             }
-            String data = (String) ond_field_array[0];
+            String data = ond_field_array[0];
             forward(node_id, products_count,data);
         }
     }

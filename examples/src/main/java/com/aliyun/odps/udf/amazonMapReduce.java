@@ -30,7 +30,20 @@ public class amazonMapReduce {
         public void map(long recordNum, Record record, TaskContext context)
                 throws IOException {
             key.set(0,record.get("product_node"));
-            value.set(0,record.get("product_node"));
+            String words = "";
+            String product_title = (String) record.get("product_title");
+            if (product_title!=null && !product_title.isEmpty()) words = words+" " + product_title;
+            String bullet_point1 = (String) record.get("bullet_point1");
+            if (bullet_point1!=null && !bullet_point1.isEmpty()) words = words+" " + bullet_point1;
+            String bullet_point2 = (String) record.get("bullet_point2");
+            if (bullet_point2!=null && !bullet_point2.isEmpty()) words = words+" " + bullet_point2;
+            String bullet_point3 = (String) record.get("bullet_point3");
+            if (bullet_point3!=null && !bullet_point3.isEmpty()) words = words+" " + bullet_point3;
+            String bullet_point4 = (String) record.get("bullet_point4");
+            if (bullet_point4!=null && !bullet_point4.isEmpty()) words = words+" " + bullet_point4;
+            String bullet_point5 = (String) record.get("bullet_point5");
+            if (bullet_point5!=null && !bullet_point5.isEmpty()) words = words+" " + bullet_point5;
+            value.set(0,words);
             value.set(1,record.get("brand"));
             value.set(2,record.get("month_sold_cnt"));
             value.set(3,record.get("ship"));
@@ -82,10 +95,14 @@ public class amazonMapReduce {
             Map<String,Long> reviews_cnt_range_asin_cnt_map = new HashMap<>();
             // 评分数段对应的月销量
             Map<String,Long> reviews_cnt_range_month_sold_cnt_map = new HashMap<>();
+            // word-cnt map
+            Map<String,Long> word_cnt_map = new HashMap<>();
             while (values.hasNext()) {
                 Record value = values.next();
                 // 类目下所有asin个数
                 ana_total_asin_cnt +=1;
+                // 标题,五点描述词频统计
+                split_string(word_cnt_map,(String) value.get(0));
                 String brand = (String) value.get("brand");
                 if(brand==null || brand.isEmpty()){
                     brand = "未知品牌";
@@ -103,6 +120,7 @@ public class amazonMapReduce {
                 Long reviews_count_long = (Long) value.get("reviews_count");
                 // 评论数范围
                 String reviews_count_range = get_reviews_count_range(reviews_count_long);
+
 
                 // asin有月销量的时候，聚合计算总月销量，不同区间范围的月销量
                 if (month_sold_cnt_long!=null && month_sold_cnt_long>0) {
@@ -174,6 +192,8 @@ public class amazonMapReduce {
             result_json.put("ana_stars_range",map_2_string_combine(stars_range_month_sold_cnt_map,ana_month_sold_cnt_sum,stars_range_asin_cnt_map));
             // 评分数分布
             result_json.put("ana_reviews_cnt_range",map_2_string_combine(reviews_cnt_range_month_sold_cnt_map,ana_month_sold_cnt_sum,reviews_cnt_range_asin_cnt_map));
+            // 词频统计
+            result_json.put("word_cnt_100",sortMapByValues_string_combine(word_cnt_map,100));
             result.set(0,key.get("product_node"));
             result.set(1,result_json.toJSONString());
 //            System.out.println(result_json.toJSONString());
@@ -191,8 +211,9 @@ public class amazonMapReduce {
         job.setReducerClass(SumReducer.class);
         //设置mapper中间结果的key和value的schema, mapper的中间结果输出也是record的形式。
         job.setMapOutputKeySchema(SchemaUtils.fromString("product_node:String"));
-        job.setMapOutputValueSchema(SchemaUtils.fromString("product_node:String,brand:String," +
-                "month_sold_cnt:bigint,ship:String,issue_date:String,price:double,stars:double,reviews_count:bigint"));
+        job.setMapOutputValueSchema(SchemaUtils.fromString("words:String,brand:String," +
+                "month_sold_cnt:bigint,ship:String,issue_date:String,price:double,stars:double," +
+                "reviews_count:bigint"));
         job.setPartitionColumns(new String[] { "product_node" });
         job.setOutputKeySortColumns(new String[] { "product_node" });
         job.setOutputGroupingColumns(new String[] { "product_node" });

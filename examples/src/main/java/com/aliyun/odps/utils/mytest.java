@@ -13,7 +13,7 @@ public class mytest {
         aa.put("c",2L);
         aa.put("e",3L);
 
-        System.out.println(tools.get_double_acc(1.2222,2));
+        tools.split_string(aa,"wefwefw ? in on of # . fs wefw");
 
 
     }

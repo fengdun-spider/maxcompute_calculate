@@ -22,9 +22,9 @@ public class amazon_market_udtf3 extends UDTF {
             if (!field.contains("#")){
                 continue;
             }
-            Object[] ond_field_array = field.split("###");
-            String cate = (String) ond_field_array[0];
-            String products_count_string = (String) ond_field_array[2];
+            String[] ond_field_array = field.split("###");
+            String cate = ond_field_array[0];
+            String products_count_string = ond_field_array[2];
             Long products_count;
             if ( products_count_string==null || products_count_string.isEmpty()){
                 products_count = null;
@@ -32,7 +32,7 @@ public class amazon_market_udtf3 extends UDTF {
                 products_count = Long.parseLong(products_count_string);
             }
             Double sales_proportion;
-            String sales_proportion_string = (String) ond_field_array[1];
+            String sales_proportion_string = ond_field_array[1];
             if (sales_proportion_string==null || sales_proportion_string.isEmpty()){
                 sales_proportion = null;
             }else{
