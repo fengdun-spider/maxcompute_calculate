@@ -50,6 +50,8 @@ public class KeyWordUdf extends UDF {
         Map<String,Long> reviews_cnt_range_asin_cnt_map = new HashMap<>();
         // 评分数段对应的月销量
         Map<String,Long> reviews_cnt_range_month_sold_cnt_map = new HashMap<>();
+        // title 复杂分词
+        Map<String,Long>  product_title_word_cnt = new HashMap<>();
 
         // amz 发货数量
         double amz_cnt = 0.0;
@@ -97,6 +99,8 @@ public class KeyWordUdf extends UDF {
             // 各范围区间内的asin个数
             map_key_add_value(stars_range_asin_cnt_map,stars_range,1);
             map_key_add_value(reviews_cnt_range_asin_cnt_map,reviews_count_range,1);
+            String product_title = (String) item.getFieldValue("product_title");
+            split_string_dif(product_title_word_cnt,product_title);
 
         }
         // 商品总数
@@ -142,6 +146,8 @@ public class KeyWordUdf extends UDF {
         result.put("keyword_stars_range",map_2_string_combine(stars_range_month_sold_cnt_map,total_month_sold_cnt,stars_range_asin_cnt_map));
         // 评分数分布
         result.put("keyword_reviews_cnt_range",map_2_string_combine(reviews_cnt_range_month_sold_cnt_map,total_month_sold_cnt,reviews_cnt_range_asin_cnt_map));
+        // 标题词频分析
+        result.put("keyword_title_frequency",sortMapByValues_string_combine(product_title_word_cnt,1000));
         return result.toJSONString();
     }
 }

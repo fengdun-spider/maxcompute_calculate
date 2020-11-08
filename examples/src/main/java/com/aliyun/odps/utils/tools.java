@@ -206,11 +206,44 @@ public class tools {
         if (words ==null || words.isEmpty()) return;
         words = words.replaceAll("#|,|\\.|:|;|\\?","");
         for (String word :words.split(" ")){
-            if (!word.isEmpty() && !word.equals("and") && !word.equals("the") && !word.equals("with") &&
+            if (!word.isEmpty() && !word.equals("and") && !word.equals(" ") && !word.equals("the") && !word.equals("with") &&
                     !word.equals("in") && !word.equals("by") && !word.equals("its") && !word.equals("for") &&
                     !word.equals("of") && !word.equals("an") && !word.equals("to") && !word.equals("&") &&
                     !word.equals("on") && !word.equals("at") && !word.equals("into") && !word.equals("from")){
                 map_key_add_value(amap,word,1);
+            }
+        }
+    }
+
+    public static void split_string_dif(Map<String, Long> amap,String words){
+        if (words ==null || words.isEmpty()) return;
+        // 第一次过滤字符串中的符号
+        words = words.replaceAll("#|,|\\.|:|;|\\?","");
+        String [] words_list = words.split(" ");
+        // 第二次过滤
+        List<String> words_list_filter = new ArrayList<>();
+        for (String _word : words_list) {
+            if (_word.isEmpty() || _word.equals(" ")){
+                continue;
+            }
+            words_list_filter.add(_word);
+        }
+        for (int i=0;i<words_list_filter.size();i++){
+            String word = words_list_filter.get(i);
+            // 单个词
+            if (!word.equals("and") && !word.equals("the") && !word.equals("with") &&
+                    !word.equals("in") && !word.equals("by") && !word.equals("its") && !word.equals("for") &&
+                    !word.equals("of") && !word.equals("an") && !word.equals("to") && !word.equals("&") &&
+                    !word.equals("on") && !word.equals("at") && !word.equals("into") && !word.equals("from")){
+                map_key_add_value(amap,word,1);
+            }
+            // 两个词
+            if (i+1<words_list_filter.size()){
+                map_key_add_value(amap,word+" "+words_list_filter.get(i+1),1);
+            }
+            // 三个词
+            if (i+2<words_list_filter.size()){
+                map_key_add_value(amap,word+" "+words_list_filter.get(i+1) + " " + words_list_filter.get(i+2),1);
             }
         }
     }
