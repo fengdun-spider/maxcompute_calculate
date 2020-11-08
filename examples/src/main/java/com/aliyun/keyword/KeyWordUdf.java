@@ -108,8 +108,12 @@ public class KeyWordUdf extends UDF {
         // 取样产品数
         result.put("keyword_all_item_cnt",all_item_cnt);
         // 平均价格
-        Double keyword_avg_price = price_list.stream().reduce(Double::sum).get()/all_item_cnt;
-        result.put("keyword_avg_price",get_double_acc(keyword_avg_price,2));
+        if (price_list.size()>0){
+            Double keyword_avg_price = price_list.stream().reduce(Double::sum).get()/all_item_cnt;
+            result.put("keyword_avg_price",get_double_acc(keyword_avg_price,2));
+        }else{
+            result.put("keyword_avg_price","");
+        }
         // 最高价格
         result.put("keyword_max_price",price_list.stream().reduce(Double::max));
         // 平均评论数
