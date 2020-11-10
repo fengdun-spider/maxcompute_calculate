@@ -193,7 +193,7 @@ public class amazonMapReduce {
             // 评分数分布
             result_json.put("ana_reviews_cnt_range",map_2_string_combine(reviews_cnt_range_month_sold_cnt_map,ana_month_sold_cnt_sum,reviews_cnt_range_asin_cnt_map));
             // 词频统计
-            result_json.put("word_cnt_100",sortMapByValues_string_combine(word_cnt_map,100));
+            result_json.put("word_cnt_100",sortMapByValues_string(word_cnt_map,100));
             result.set(0,key.get("product_node"));
             result.set(1,result_json.toJSONString());
 //            System.out.println(result_json.toJSONString());

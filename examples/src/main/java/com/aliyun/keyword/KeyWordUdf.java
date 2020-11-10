@@ -151,7 +151,7 @@ public class KeyWordUdf extends UDF {
         // 评分数分布
         result.put("keyword_reviews_cnt_range",map_2_string_combine(reviews_cnt_range_month_sold_cnt_map,total_month_sold_cnt,reviews_cnt_range_asin_cnt_map));
         // 标题词频分析
-        result.put("keyword_title_frequency",sortMapByValues_string_combine(product_title_word_cnt,1000));
+        result.put("keyword_title_frequency",sortMapByValues_string(product_title_word_cnt,1000));
         return result.toJSONString();
     }
 }

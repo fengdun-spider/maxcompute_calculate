@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 
 public class tools {
 
+    static Date now_date = new Date();
+    static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
     static List<String> one_word_filter_list = new ArrayList<String>(){
         {
             this.add("and");this.add(" ");this.add("the");this.add("with");this.add("in");this.add("by");
@@ -15,10 +17,9 @@ public class tools {
             this.add("on");this.add("at");this.add("into");this.add("from");
         }
     };
-    static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-    static Date now_date = new Date();
 
-    //    求价格均值
+
+    //    求均值
     public static double list_double_avg(ArrayList<Double> price_list) {
         double price_sum = 0;
         for (Double price : price_list) {
@@ -26,6 +27,15 @@ public class tools {
         }
         return price_sum / price_list.size();
     }
+
+
+    // 获取两位小数
+    public static Double get_double_acc(Double value,Integer acc){
+        if (value==null) return null;
+        BigDecimal decimal = new BigDecimal(value);
+        return decimal.setScale(acc,BigDecimal.ROUND_HALF_UP).doubleValue();
+    }
+
 
     //    判断日期是不是多少天内
     public static boolean date_is_new(String issue_date, int days) {
@@ -37,6 +47,7 @@ public class tools {
             return false;
         }
     }
+
 
     //   pt日期格式是否正确
     public static boolean valid_monday_pt(String pt) {
@@ -50,7 +61,8 @@ public class tools {
         }
     }
 
-    //    累加value更新map中key-value
+
+    //  累加value更新map中key-value
     public static void map_key_add_value(Map<String, Long> map, String key, long value) {
         if (map.containsKey(key)) {
             map.replace(key, map.get(key) + value);
@@ -59,8 +71,47 @@ public class tools {
         }
     }
 
-    //  map按照value排序 ,并取指定数量键值对字符串,,,,
-    public static String sortMapByValues_string_combine(Map<String, Long> map, int size) {
+
+    //  map键值对变成string返回
+    public static String map_2_string(Map<String, Long> map) {
+        if (map.size() == 0) {
+            return "";
+        }
+        StringBuilder result = new StringBuilder();
+        for (Map.Entry<String, Long> entry : map.entrySet()) {
+            result.append(entry.getKey()).append("###").append(entry.getValue()).append("|||");
+        }
+        return result.substring(0, result.length() - 3);
+    }
+
+
+    //  map键值对变成string返回,并融合两个map数据
+    public static String map_2_string_combine(Map<String, Long> map, long month_sold_cnt, Map<String, Long> map2) {
+        if (map.size() == 0 || month_sold_cnt <= 0) {
+            return "";
+        }
+        double month_sold_cnt_double = (double) month_sold_cnt;
+        StringBuilder result = new StringBuilder();
+        for (Map.Entry<String, Long> entry : map.entrySet()) {
+            result.append(entry.getKey()).append("###").append(get_double_acc(entry.getValue() / month_sold_cnt_double,2)).append("###").append(map2.get(entry.getKey())).append("|||");
+        }
+        return result.substring(0, result.length() - 3).replace("null", "");
+    }
+
+
+    //  map 按照value排序
+    public static <V extends Comparable<V>> Map<String, V> sortMapByValues(Map<String, V> aMap) {
+        HashMap<String, V> finalOut = new LinkedHashMap<>();
+        aMap.entrySet()
+                .stream()
+                .sorted((p1, p2) -> p2.getValue().compareTo(p1.getValue()))
+                .collect(Collectors.toList()).forEach(ele -> finalOut.put(ele.getKey(), ele.getValue()));
+        return finalOut;
+    }
+
+
+    //  map按照value排序 ,取指定数量键值对字符串
+    public static String sortMapByValues_string(Map<String, Long> map, int size) {
         if (map.isEmpty()) return "";
         StringBuilder result = new StringBuilder();
         List<Map.Entry<String, Long>> sort_entry_list = map.entrySet()
@@ -79,7 +130,7 @@ public class tools {
     }
 
 
-    //  map按照value排序 ,并取指定数量键值对字符串,,,,
+    //  map按照value排序 ,取指定数量键值对字符串,,并融合两个map的数据
     public static String sortMapByValues_string_combine(Map<String, Long> map, int size, long month_sold_cnt, Map<String, Long> map2) {
         if (map.size() == 0 || month_sold_cnt <= 0) {
             return "";
@@ -102,30 +153,6 @@ public class tools {
         return result.substring(0, result.length() - 3).replace("null", "");
     }
 
-    //  map变成string返回
-    public static String map_2_string(Map<String, Long> map) {
-        if (map.size() == 0) {
-            return "";
-        }
-        StringBuilder result = new StringBuilder();
-        for (Map.Entry<String, Long> entry : map.entrySet()) {
-            result.append(entry.getKey()).append("###").append(entry.getValue()).append("|||");
-        }
-        return result.substring(0, result.length() - 3);
-    }
-
-    //  map变成string返回,,,,
-    public static String map_2_string_combine(Map<String, Long> map, long month_sold_cnt, Map<String, Long> map2) {
-        if (map.size() == 0 || month_sold_cnt <= 0) {
-            return "";
-        }
-        double month_sold_cnt_double = (double) month_sold_cnt;
-        StringBuilder result = new StringBuilder();
-        for (Map.Entry<String, Long> entry : map.entrySet()) {
-            result.append(entry.getKey()).append("###").append(get_double_acc(entry.getValue() / month_sold_cnt_double,2)).append("###").append(map2.get(entry.getKey())).append("|||");
-        }
-        return result.substring(0, result.length() - 3).replace("null", "");
-    }
 
     // 价格分布
     public static String get_price_range(Double price, Double avg_price) {
@@ -193,24 +220,7 @@ public class tools {
     }
 
 
-    public static <V extends Comparable<V>> Map<String, V> sortMapByValues(Map<String, V> aMap) {
-        HashMap<String, V> finalOut = new LinkedHashMap<>();
-        aMap.entrySet()
-                .stream()
-                .sorted((p1, p2) -> p2.getValue().compareTo(p1.getValue()))
-                .collect(Collectors.toList()).forEach(ele -> finalOut.put(ele.getKey(), ele.getValue()));
-        return finalOut;
-    }
-
-    // 获取两位小数
-    public static  Double get_double_acc(Double value,Integer acc){
-        if (value==null) return null;
-        BigDecimal decimal = new BigDecimal(value);
-        return decimal.setScale(acc,BigDecimal.ROUND_HALF_UP).doubleValue();
-    }
-
-
-    // 标题字符串处理
+    // 字符串特殊字符处理
     public static List<String> symbol_replace(String words){
         List<String> words_list_filter = new ArrayList<>();
         if (words ==null || words.isEmpty()) return words_list_filter;
