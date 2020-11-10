@@ -8,6 +8,13 @@ import java.util.stream.Collectors;
 
 public class tools {
 
+    static List<String> one_word_filter_list = new ArrayList<String>(){
+        {
+            this.add("and");this.add(" ");this.add("the");this.add("with");this.add("in");this.add("by");
+            this.add("its");this.add("for");this.add("of");this.add("an");this.add("to");this.add("&");
+            this.add("on");this.add("at");this.add("into");this.add("from");
+        }
+    };
     static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
     static Date now_date = new Date();
 
@@ -202,39 +209,43 @@ public class tools {
         return decimal.setScale(acc,BigDecimal.ROUND_HALF_UP).doubleValue();
     }
 
-    public static void split_string(Map<String, Long> amap,String words){
-        if (words ==null || words.isEmpty()) return;
+
+    // 标题字符串处理
+    public static List<String> symbol_replace(String words){
+        List<String> words_list_filter = new ArrayList<>();
+        if (words ==null || words.isEmpty()) return words_list_filter;
+        // 第一次过滤分割前的符号
         words = words.replaceAll("#|,|\\.|:|;|\\?","");
-        for (String word :words.split(" ")){
-            if (!word.isEmpty() && !word.equals("and") && !word.equals(" ") && !word.equals("the") && !word.equals("with") &&
-                    !word.equals("in") && !word.equals("by") && !word.equals("its") && !word.equals("for") &&
-                    !word.equals("of") && !word.equals("an") && !word.equals("to") && !word.equals("&") &&
-                    !word.equals("on") && !word.equals("at") && !word.equals("into") && !word.equals("from")){
+        String [] words_list = words.split(" ");
+        // 第二次过滤分割后的字符
+        for (String _word : words_list) {
+            if (_word.isEmpty() || _word.equals(" ") || _word.equals("-")){
+                continue;
+            }
+            words_list_filter.add(_word);
+        }
+        return words_list_filter;
+    }
+
+
+    // 单个词 词频
+    public static void split_string(Map<String, Long> amap,String words){
+        List<String> words_list_filter = symbol_replace(words);
+        for (String word :words_list_filter){
+            if (!one_word_filter_list.contains(word)){
                 map_key_add_value(amap,word,1);
             }
         }
     }
 
+
+    // 单个词，两个词，三个词 词频
     public static void split_string_dif(Map<String, Long> amap,String words){
-        if (words ==null || words.isEmpty()) return;
-        // 第一次过滤字符串中的符号
-        words = words.replaceAll("#|,|\\.|:|;|\\?","");
-        String [] words_list = words.split(" ");
-        // 第二次过滤
-        List<String> words_list_filter = new ArrayList<>();
-        for (String _word : words_list) {
-            if (_word.isEmpty() || _word.equals(" ")){
-                continue;
-            }
-            words_list_filter.add(_word);
-        }
+        List<String> words_list_filter = symbol_replace(words);
         for (int i=0;i<words_list_filter.size();i++){
             String word = words_list_filter.get(i);
             // 单个词
-            if (!word.equals("and") && !word.equals("the") && !word.equals("with") &&
-                    !word.equals("in") && !word.equals("by") && !word.equals("its") && !word.equals("for") &&
-                    !word.equals("of") && !word.equals("an") && !word.equals("to") && !word.equals("&") &&
-                    !word.equals("on") && !word.equals("at") && !word.equals("into") && !word.equals("from")){
+            if (!one_word_filter_list.contains(word)){
                 map_key_add_value(amap,word,1);
             }
             // 两个词
