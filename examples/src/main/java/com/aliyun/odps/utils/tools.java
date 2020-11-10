@@ -212,7 +212,7 @@ public class tools {
             return "300-500";
         } else if (500 <= reviews_count && reviews_count < 1000) {
             return "500-1000";
-        } else if (100 <= reviews_count) {
+        } else if (1000 <= reviews_count) {
             return "1000up";
         } else {
             return "null";
