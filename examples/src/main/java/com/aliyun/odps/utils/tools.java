@@ -10,13 +10,7 @@ public class tools {
 
     static Date now_date = new Date();
     static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-    static List<String> one_word_filter_list = new ArrayList<String>(){
-        {
-            this.add("and");this.add(" ");this.add("the");this.add("with");this.add("in");this.add("by");
-            this.add("its");this.add("for");this.add("of");this.add("an");this.add("to");this.add("&");
-            this.add("on");this.add("at");this.add("into");this.add("from");
-        }
-    };
+    static List<String> one_word_filter_list = Arrays.asList("and"," ","the","with","in","by","its","for","of","an","to","&","on","at","into","from");
 
 
     //    求均值
@@ -268,5 +262,4 @@ public class tools {
             }
         }
     }
-
 }
