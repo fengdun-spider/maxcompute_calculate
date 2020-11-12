@@ -31,6 +31,18 @@ public class tools {
     }
 
 
+    //   得到发布了多少天
+    public static int get_pub_days(String issue_date){
+    try {
+        Date pub_date = sdf.parse(issue_date);
+        return (int) ((now_date.getTime() - pub_date.getTime()) / (1000.0 * 3600 * 24));
+    } catch (Exception ex) {
+        return 180;
+    }
+}
+
+
+
     //    判断日期是不是多少天内
     public static boolean date_is_new(String issue_date, int days) {
         try {
