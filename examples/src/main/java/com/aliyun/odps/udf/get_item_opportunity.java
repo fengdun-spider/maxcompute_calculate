@@ -5,7 +5,7 @@ import com.aliyun.odps.udf.annotation.Resolve;
 import static com.aliyun.odps.utils.tools.get_pub_days;
 
 @Resolve({"bigint,string,string,bigint,double,bigint,double,bigint,string,bigint->bigint"})
-public class get_item_profit_rate extends UDF {
+public class get_item_opportunity extends UDF {
     public Long evaluate(Long month_sold_cnt,String product_size,String issue_date,Long bsr1,Double price,Long reviews_count,Double stars, Long offer_listing, String ship,Long is_best_seller) {
         double result = 0.0;
 

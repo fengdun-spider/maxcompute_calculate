@@ -3,7 +3,7 @@ package com.aliyun.odps.udf;
 import com.aliyun.odps.udf.annotation.Resolve;
 
 @Resolve({"bigint,bigint,bigint,double,double,double,bigint,bigint,double,double,bigint,double,double,double->bigint"})
-public class get_market_profit_rate extends UDF {
+public class get_market_opportunity extends UDF {
     public Long evaluate(Long avg_sales, Long avg_reviews_count, Long avg_bsr, Double avg_price, Double avg_stars, Double avg_weight, Long top_100_brand_count, Long top_50_brand_count, Double product_concentration, Double brand_concentration, Long avg_sellers_count, Double fba_proportion, Double fbm_proportion, Double amz_proportion) {
         double result = 0.0;
         if(avg_sales==null||avg_sales<=0) result+=0;
