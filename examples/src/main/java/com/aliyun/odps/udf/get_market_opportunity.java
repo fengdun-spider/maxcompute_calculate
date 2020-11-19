@@ -127,6 +127,6 @@ public class get_market_opportunity extends UDF {
         else if(amz_proportion<=0.55) result+=0.3;
         else result+=0.2;
 
-        return (long) Math.ceil(result);
+        return (long) Math.ceil((result/2));
     }
 }
