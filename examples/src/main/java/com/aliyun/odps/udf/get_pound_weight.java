@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 public class get_pound_weight extends UDF {
     // TODO define parameters and return type, e.g:  public String evaluate(String a, String b)
     public Double evaluate(String item_weight) {
-        String pattern = "([\\d|\\\\.]+)\\s(\\w+)";
+        String pattern = "(\\d+\\.?\\d+)\\s(\\w+)";
         Pattern r = Pattern.compile(pattern);
         Matcher m = r.matcher(item_weight);
         // 美制单位
